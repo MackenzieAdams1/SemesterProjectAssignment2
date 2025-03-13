@@ -1,5 +1,7 @@
 ## Term Project Assignment 2 - 10 pnts
 
+TESTING THAT THIS WORKS
+
 In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
 
 ### Brainstorming
