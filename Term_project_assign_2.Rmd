@@ -14,9 +14,8 @@ Consider: <br>
 - What specific phenomenon within that issue are you interested in understanding  <br>
 - What measurable or observable outcomes do you want to analyze.  <br>
 For example, instead of 'how does climate change affect forests?', you might consider 'How has seasonal precipitation variability impacted the timing of peak NDVI in the Pacific Northwest from 2000 to 2020.' Note that this question is specific enough to guide your search for the necessary data, such as precipitation records and NDVI time series. <br>
-ANSWER:
 
-Develop a model to assess the effects of precipitation, stream flow, and water temperature on salmon returns in the Pacific Northwest.
+ANSWER: How has variability in stream discharge, precipitation, and air temperature impacted salmon returns in Western Washington.
 
 **Q2. What are 2-3 types of data your research question requires? Address each sub-question (2 pts)**
 Be as specific as you can, what types of variables or indicators are you looking for? <br>
@@ -28,6 +27,16 @@ Salmon Return Data: survey data
 Precipitation: weather station
 Stream Temperature: stream gauge
 Stream Flow: stream gauge
+
+ANSWER:
+1) For this project the variables and indicators we are looking for is salmon return data (specifically from streams with USGS gages), stream discharge data, precipitation data, and air temperature data.
+
+2) The data should all be in the form of time-series data, however, we will likely use the map function previously used in labs to display where the stream gages we are using information from are located. 
+
+3) The salmon return data will be survey type data from the stateofsalmon.wa.gov website. The stream discharge data will come from three different USGS gages. The precipitation and air temperature data will come from NOAA weather station records. 
+
+4) As salmon have a 3-5 year life cycle depending on the species a longer temporal length would be best, ideally spanning 20+ years so that patterns across multiple generations can be examined. The resolution of the data will depend on the variable. Salmon return data are reported as annual totals, so this data will be represented as a single value each year. However, having daily data for stream flow, precipitation, and air temperature would allow for examination of annual patterns and help to determine if there is a correlation between changes in these factors and salmon returns. Therefore these three variables will be examined on a daily basis. 
+
 
 ### Data exploration and selection
 
@@ -84,6 +93,29 @@ Install needed packages
 # neededPackages <- c("tidyverse", "lubridate", "Evapotranspiration") 
 
 # for (package in neededPackages){pkgTest(package)}
+
+library(dataRetrieval)
+library(tidyverse)
+library(dplyr)
+library(patchwork)
+
+Dungeness_Gage <- "12048000"
+Elwha_Gage <- "12045500"
+Skokomish_Gage <- "12061500"
+
+start <- date("1987-10-01")
+end <- date("2023-9-30")
+para <-("00060")
+
+Dungeness_Stream_Data <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+  
+Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+
+Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+
 ```
 
 
@@ -93,6 +125,17 @@ Generate plots:
 Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
 
 ```{r}
+
+Dungeness <- Dungeness_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+
+Elwha <- Elwha_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+
+Skokomish <- Skokomish_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+
+Dungeness/Elwha/Skokomish
 
 ```
 
