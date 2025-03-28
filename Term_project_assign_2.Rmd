@@ -103,7 +103,10 @@ library(rnoaa) #add code make it reproduce
 install.packages("daymetr")
 library(daymetr)
 
+```
 
+
+```{r}
 Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
 Skokomish_Gage <- "12061500"
@@ -121,7 +124,10 @@ Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, st
 Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
   renameNWISColumns()
 
-#find a way to make this more streamlined
+```
+
+```{r}
+#find a way to make this more streamlined as in that it will generate lat long for a gage if you just put in a gage number
 weather_df <- download_daymet(
   site = "Pacific Northwest",
   lat = 48.05478018,
@@ -137,35 +143,13 @@ weather_df <- weather_df %>%
 
 prcp_mm_day <- weather_df %>%
   filter(measurement == "prcp..mm.day.")
+
 tmax_deg_c <- weather_df %>%
   filter(measurement == "tmax..deg.c.")
+
 tmin_deg_c <- weather_df %>%
   filter(measurement == "tmin..deg.c.")
-
-prcp_mm_day <- weather_df %>%
-  filter(measurement == "prcp..mm.day.") %>%
-  ggplot(aes(x = date, y = value)) +
-  geom_line(color = "blue") +
-  theme_linedraw() +
-  labs(y = "Daily Precipitation (mm)", x = "Date")
-
-tmax_deg_c <- weather_df %>%
-  filter(measurement == "tmax..deg.c.") %>%
-  ggplot(aes(x = date, y = value)) +
-  geom_line(color = "blue") +
-  theme_linedraw() +
-  labs(y = "Max Temperature (C)", x = "Date")
-
-tmin_deg_c <- weather_df %>%
-  filter(measurement == "tmin..deg.c.") %>%
-  ggplot(aes(x = date, y = value)) +
-  geom_line(color = "blue") +
-  theme_linedraw() +
-  labs(y = "Min Temperature (C)", x = "Date")
-
-
 ```
-
 
 **Write a brief summary (3-4 sentences) describing your data.** 
 
@@ -186,6 +170,30 @@ Skokomish <- Skokomish_Stream_Data %>%
 Dungeness/Elwha/Skokomish
 
 ```
+
+```{r}
+prcp_mm_day <- weather_df %>%
+  filter(measurement == "prcp..mm.day.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Daily Precipitation (mm)", x = "Date")
+
+tmax_deg_c <- weather_df %>%
+  filter(measurement == "tmax..deg.c.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Max Temperature (C)", x = "Date")
+
+tmin_deg_c <- weather_df %>%
+  filter(measurement == "tmin..deg.c.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Min Temperature (C)", x = "Date")
+```
+
 
 Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
 
