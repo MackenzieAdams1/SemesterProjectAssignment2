@@ -98,6 +98,11 @@ library(dataRetrieval)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
+library(rnoaa) #add code make it reproduce
+
+install.packages("daymetr")
+library(daymetr)
+
 
 Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
@@ -115,6 +120,49 @@ Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, st
 
 Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
   renameNWISColumns()
+
+#find a way to make this more streamlined
+weather_df <- download_daymet(
+  site = "Pacific Northwest",
+  lat = 48.05478018,
+  lon = -123.5832136,
+  start = 1987,
+  end = 2023,
+  internal = TRUE,
+  simplify = TRUE # return tidy data !!
+  )
+
+weather_df <- weather_df %>%
+  mutate(date = as.Date(paste(year, yday, sep = "-"), "%Y-%j"))
+
+prcp_mm_day <- weather_df %>%
+  filter(measurement == "prcp..mm.day.")
+tmax_deg_c <- weather_df %>%
+  filter(measurement == "tmax..deg.c.")
+tmin_deg_c <- weather_df %>%
+  filter(measurement == "tmin..deg.c.")
+
+prcp_mm_day <- weather_df %>%
+  filter(measurement == "prcp..mm.day.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Daily Precipitation (mm)", x = "Date")
+
+tmax_deg_c <- weather_df %>%
+  filter(measurement == "tmax..deg.c.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Max Temperature (C)", x = "Date")
+
+tmin_deg_c <- weather_df %>%
+  filter(measurement == "tmin..deg.c.") %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Min Temperature (C)", x = "Date")
+
 
 ```
 
@@ -197,3 +245,5 @@ print(data_table)
 Once this is exported, you can format if desired for readibility and submit the .csv with a completed .rmd. 
 
 **Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
+
+
