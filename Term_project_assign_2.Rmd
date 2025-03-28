@@ -98,23 +98,51 @@ library(dataRetrieval)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
+library(zoo)
 
+
+```
+
+
+```{r}
+# Setting stuff up for later
 Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
 Skokomish_Gage <- "12061500"
+
+all_gages <- c(Dungeness_Gage, Elwha_Gage, Skokomish_Gage)
 
 start <- date("1987-10-01")
 end <- date("2023-9-30")
 para <-("00060")
 
-Dungeness_Stream_Data <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
+Dungeness_Stream_df <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns() %>%
+  mutate(
+    rolling_mean = rollmean(Flow, 7, fill = NA, align = "right")
+  )
   
-Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+Elwha_Stream_df <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+Skokomish_Stream_df <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
   renameNWISColumns()
 
-Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
+#for loop to automate the above actions. This way, project is expandable. 
+#future use: just have to add new rivers to all_gages list
+
+for (gage in all_gages){
+  temp_df <-
+    readNWISdv(siteNumbers = gage, parameterCd = para, startDate = start, endDate = end) %>%
+    renameNWISColumns() %>%
+    mutate(
+    rolling_mean = rollmean(Flow, 7, fill = NA, align = "right")
+    )
+  
+  temp_name <- paste(str_extract(deparse(substitute(gage)), "^[^_]+"), "_steam_df")
+  
+  assign(temp_name, temp_df)
+}
+
 
 ```
 
@@ -126,16 +154,21 @@ Create at least one plot that summarizes the data and describe it's use to you. 
 
 ```{r}
 
-Dungeness <- Dungeness_Stream_Data %>%
+Dungeness_gg <- Dungeness_Stream_df %>%
+  ggplot(aes(x=Date, y= rolling_mean)) + 
+  geom_line() + 
+  theme_classic() + 
+  labs(x = "Date", y = "Discharge (cfs)")
+
+Elwha_gg <- Elwha_Stream_df %>%
+  ggplot(aes(x=Date, y= Flow)) + 
+  geom_line() + theme_classic() + 
+  labs(x = "Date", y = "Discharge (cfs)")
+
+Skokomish_gg <- Skokomish_Stream_df %>%
    ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
 
-Elwha <- Elwha_Stream_Data %>%
-   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
-
-Skokomish <- Skokomish_Stream_Data %>%
-   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
-
-Dungeness/Elwha/Skokomish
+Dungeness_gg/Elwha_gg/Skokomish_gg
 
 ```
 
