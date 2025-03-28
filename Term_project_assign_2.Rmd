@@ -111,10 +111,8 @@ Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
 Skokomish_Gage <- "12061500"
 
-deparse(Ba)
-
 all_gages <- c(Dungeness_Gage, Elwha_Gage, Skokomish_Gage) %>%
-  names
+  names(deparse(substitute(c(Dungeness_Gage, Elwha_Gage, Skokomish_Gage))))
 
 ## set all the parameters
 start <- date("1987-10-01")
