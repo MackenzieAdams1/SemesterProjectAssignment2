@@ -105,44 +105,51 @@ library(zoo)
 
 
 ```{r}
-# Setting stuff up for later
+## Name the gages you want here, and assign them their gage number. Add them all to "all_gages" as well
+
 Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
 Skokomish_Gage <- "12061500"
 
-all_gages <- c(Dungeness_Gage, Elwha_Gage, Skokomish_Gage)
+deparse(Ba)
 
+all_gages <- c(Dungeness_Gage, Elwha_Gage, Skokomish_Gage) %>%
+  names
+
+## set all the parameters
 start <- date("1987-10-01")
 end <- date("2023-9-30")
 para <-("00060")
 
-Dungeness_Stream_df <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns() %>%
-  mutate(
-    rolling_mean = rollmean(Flow, 7, fill = NA, align = "right")
-  )
-  
-Elwha_Stream_df <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
-Skokomish_Stream_df <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
 
-#for loop to automate the above actions. This way, project is expandable. 
-#future use: just have to add new rivers to all_gages list
+## for loop to automate creating new dfs. This way, project is expandable. 
+## future use: just have to add new rivers to all_gages list
+
+first_time <- T
 
 for (gage in all_gages){
   temp_df <-
     readNWISdv(siteNumbers = gage, parameterCd = para, startDate = start, endDate = end) %>%
     renameNWISColumns() %>%
     mutate(
-    rolling_mean = rollmean(Flow, 7, fill = NA, align = "right")
+    rolling_weekly = rollmean(Flow, 7, fill = NA, align = "right")
     )
   
-  temp_name <- paste(str_extract(deparse(substitute(gage)), "^[^_]+"), "_steam_df")
+  temp_name <- paste0(str_extract(all_gages[gage], "^[^_]+"), "_stream_df")
   
   assign(temp_name, temp_df)
+  
+  if (first_time){
+    all_dfs <- c()
+    first_time <- F
+  }
+  else {
+    all_dfs[[temp_name]] <- temp_df
+  }
 }
 
+
+str_extract(all_gages[3], "^[^_]+")
 
 ```
 
@@ -153,6 +160,9 @@ Generate plots:
 Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
 
 ```{r}
+
+
+for (dfs in )
 
 Dungeness_gg <- Dungeness_Stream_df %>%
   ggplot(aes(x=Date, y= rolling_mean)) + 
