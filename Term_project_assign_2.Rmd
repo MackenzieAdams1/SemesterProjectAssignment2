@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 ## Term Project Assignment 2 - 10 pnts
 
 TESTING THAT THIS WORKS
@@ -94,16 +99,49 @@ Install needed packages
 
 # for (package in neededPackages){pkgTest(package)}
 
+#remotes::install_github("https://github.com/ropensci/rnoaa.git")
+#install.packages("daymetr")
+
+
 library(dataRetrieval)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
 library(rnoaa) #add code make it reproduce
-
-install.packages("daymetr")
+library(zoo)
 library(daymetr)
 
 ```
+
+
+```{r}
+all_gages <- 
+  tribble(
+    ~site_name,        ~site_no,
+    "Dungeness_Gage",  "12048000",
+    "Elwha_Gage",      "12045500",
+    "Skokomish_Gage",  "12061500")
+
+## set all the parameters
+start <- date("1987-10-01")
+end <- date("2023-9-30")
+para <-("00060")
+
+# NWIS_result <- readNWISdv(all_gages$site_no, para, start, end)
+# saveRDS(NWIS_result, "NWIS_result.rdata")
+
+gage_data <-
+  readRDS("NWIS_result.rdata") %>%
+  renameNWISColumns() %>%
+  inner_join(all_gages, .) %>%
+  group_by(site_name, site_no)
+
+summarize(gage_data)
+
+tail(gage_data)
+
+```
+
 
 ```{r}
 Dungeness_Gage <- "12048000"
@@ -218,6 +256,8 @@ tmin_deg_c_portangeles_gg <- portangeles_weather_df %>%
   theme_linedraw() +
   labs(y = "Min Temperature (C)", x = "Date")
 ```
+
+
 
 ```{r}
 prcp_mm_day_skokomish_gg <- skokomish_weather_df %>%
