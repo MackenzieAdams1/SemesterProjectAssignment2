@@ -115,6 +115,11 @@ library(daymetr)
 
 
 ```{r}
+# With the help of Poole, this has been rewritten such that all the stream data is in one
+# df. Can talk through the implications of this later. But is very nice
+
+# This efficiently automates the process of getting all the stream data desired into one df.
+
 all_gages <- 
   tribble(
     ~site_name,        ~site_no,
@@ -209,13 +214,13 @@ skokomish_weather_df <- download_daymet(
 skokomish_weather_df <- skokomish_weather_df %>%
   mutate(date = as.Date(paste(year, yday, sep = "-"), "%Y-%j"))
 
-prcp_mm_day_skokomish <- skokomish_weather_df %>%
+prcp_mm_day_skokomish_df <- skokomish_weather_df %>%
   filter(measurement == "prcp..mm.day.")
 
-tmax_deg_c_skokomish <- skokomish_weather_df %>%
+tmax_deg_c_skokomish_df <- skokomish_weather_df %>%
   filter(measurement == "tmax..deg.c.")
 
-tmin_deg_c_skokomish <- skokomish_weather_df %>%
+tmin_deg_c_skokomish_df <- skokomish_weather_df %>%
   filter(measurement == "tmin..deg.c.") 
 
 ```
@@ -343,4 +348,5 @@ Once this is exported, you can format if desired for readibility and submit the 
 
 **Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
 
+How has variability in stream discharge, precipitation, and air temperature impacted Chinook salmon survivability and returns in Western Washington from 1987 to 2023. The data sources above will help to answer our question by providing additional insights into potential variables impacted salmon runs. Precipitation and stream discharge values will help us to analyze the flow conditions that salmon populations were experiencing within a given year and track the correlating impacts on salmon return numbers. Additionally, air temperature will help us to better understand stream conditions that the salmon were experiencing within a given season and tie these values to low flows. These climatological trends can then we tracked to analyze how variables that salmon experienced during the juvenile stage impact the return numbers three to five years later. 
 
