@@ -166,27 +166,6 @@ summarize(gage_data)
 
 ```
 
-```{r}
-# antipattern format. Can be addressed once the rest of the codebase is rewritten
-
-Dungeness_Gage <- "12048000"
-Elwha_Gage <- "12045500"
-Skokomish_Gage <- "12061500"
-
-start <- date("1987-10-01")
-end <- date("2023-9-30")
-para <-("00060")
-
-Dungeness_Stream_Data <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
-  
-Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
-
-Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
-  renameNWISColumns()
-
-```
 
 ```{r}
 # automate downloading climate data
@@ -212,23 +191,19 @@ daymet_unfucker_hum <-
 #     bind_cols(data = f[[index]]$data, site = f[[index]]$site, .name_repair = "unique")
 #   } 
 
+
+#  THIS CHUNK IS THE CURRENT PROBLEM CHILD
 gage_data <- 
   lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
   bind_rows() %>%
   select(site = site, 
+         # This fucker specifically
          date = as.Date(yday-1, origin = "1987-01-01"),
          prcp_daily_mm = prcp..mm.day., 
          t_max_C = tmax..deg.c., 
          t_min_C = tmax..deg.c.)
 
   
-gage_data <- lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>% bind_rows()
-str(gage_data) # Examine the structure of gage_data
-summary(gage_data$yday) # Summarize the yday column. Look for non-numeric values like NA, characters, or factors.
-head(gage_data$yssday) # Look at the first few values of yday
-unique(gage_data$yday) # Show all unique values in yday to identify non-numeric entries.
-
-
 peepee <- lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
   bind_rows()
   
@@ -241,6 +216,31 @@ peepee2 <-
 
 as.Date(peepee$yday, origin = "1987-01-01")
 ```
+
+
+```{r}
+# antipattern format. Can be addressed once the rest of the codebase is rewritten
+
+Dungeness_Gage <- "12048000"
+Elwha_Gage <- "12045500"
+Skokomish_Gage <- "12061500"
+
+start <- date("1987-10-01")
+end <- date("2023-9-30")
+para <-("00060")
+
+Dungeness_Stream_Data <- readNWISdv(siteNumbers = Dungeness_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+  
+Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+
+Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
+  renameNWISColumns()
+
+```
+
+
 
 
 
