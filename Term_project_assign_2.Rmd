@@ -1,7 +1,7 @@
 ---
 output: html_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 ## Term Project Assignment 2 - 10 pnts
 
@@ -115,40 +115,60 @@ library(daymetr)
 
 
 ```{r}
-# With the help of Poole, this has been rewritten such that all the stream data is in one
-# df. Can talk through the implications of this later. But is very nice
+# With the "help" of Poole (he wrote it), this has been rewritten such that all the stream 
+# data is in one df.
+# Can talk through the implications of this later. But is very nice
 
 # This efficiently automates the process of getting all the stream data desired into one df.
+# This is allowed to be a df w/ minimal info bc it has to be user defined and im not gonna go 
+# thru the effort of developing a "frontend" for this
 
-all_gages <- 
+gage_ids <- 
   tribble(
     ~site_name,        ~site_no,
     "Dungeness_Gage",  "12048000",
     "Elwha_Gage",      "12045500",
     "Skokomish_Gage",  "12061500")
+  
 
-## set all the parameters
+# set all the parameters
 start <- date("1987-10-01")
 end <- date("2023-9-30")
-para <-("00060")
+para <-c("00060", "00065")
 
-# NWIS_result <- readNWISdv(all_gages$site_no, para, start, end)
-# saveRDS(NWIS_result, "NWIS_result.rdata")
+# if sites in gage_ids are changed, uncomment the code below and run it once. This stores the 
+# data locally and eventually in the repo if its pushed. This is mostly to be polite to the  
+# USGS hosting service.
+
+# NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
+# saveRDS(NWIS_data, "NWIS_data.rdata")
+
+# NWIS_meta <- readNWISsite(gage_ids$site_no)
+# saveRDS(NWIS_meta, "NWIS_meta.rdata")
+
+gage_ids <- 
+  readRDS("NWIS_meta.rdata") %>% 
+  select(site_no,
+         dec_lat_va, 
+         dec_long_va) %>%
+  inner_join(gage_ids, .)
 
 gage_data <-
-  readRDS("NWIS_result.rdata") %>%
+  readRDS("NWIS_data.rdata") %>%
+  inner_join(gage_ids, .) %>%
   renameNWISColumns() %>%
-  inner_join(all_gages, .) %>%
   group_by(site_name, site_no)
 
+
+# Shows all unique grouped elements in gage_data. Verifies I got all the desired gages
 summarize(gage_data)
 
-tail(gage_data)
 
 ```
 
-
 ```{r}
+# antipattern format. Can be addressed once the rest of the codebase is rewritten
+
 Dungeness_Gage <- "12048000"
 Elwha_Gage <- "12045500"
 Skokomish_Gage <- "12061500"
@@ -165,6 +185,89 @@ Elwha_Stream_Data <- readNWISdv(siteNumbers = Elwha_Gage, parameterCd = para, st
 
 Skokomish_Stream_Data <- readNWISdv(siteNumbers = Skokomish_Gage, parameterCd = para, startDate = start, endDate = end) %>%
   renameNWISColumns()
+
+```
+
+```{r}
+# automate downloading climate data
+
+write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
+
+# daymet_all <- download_daymet_batch(file_location = "./gage_ids.csv", start = year(start), end = year(end), internal = T, simplify = F)
+# saveRDS(daymet_all, "DAYMET_all.rdata")
+
+
+# Downloading data mostly works. Now to append it...
+
+daymet_unfucker_hum <-
+  function(f) {
+    bind_cols(data = f$data, site = f$site, .name_repair = "unique")
+  } 
+
+#unfucker that required an index number. Lets leave it sealed away but still in the code jic
+
+# daymet_unfucker_hum_idx <-
+#   function(f, index) {
+#     print(str(f[[index]]))
+#     bind_cols(data = f[[index]]$data, site = f[[index]]$site, .name_repair = "unique")
+#   } 
+
+gage_data <- 
+  lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
+  bind_rows() %>%
+  select(site = site, 
+         date = as.Date(yday-1, origin = "1987-01-01"),
+         prcp_daily_mm = prcp..mm.day., 
+         t_max_C = tmax..deg.c., 
+         t_min_C = tmax..deg.c.)
+
+  
+gage_data <- lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>% bind_rows()
+str(gage_data) # Examine the structure of gage_data
+summary(gage_data$yday) # Summarize the yday column. Look for non-numeric values like NA, characters, or factors.
+head(gage_data$yssday) # Look at the first few values of yday
+unique(gage_data$yday) # Show all unique values in yday to identify non-numeric entries.
+
+
+peepee <- lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
+  bind_rows()
+  
+peepee2 <-
+  peepee %>%
+  mutate(
+    date = as.Date(yday-1, origin = "1987-01-01")
+  )
+
+
+as.Date(peepee$yday, origin = "1987-01-01")
+```
+
+
+
+
+```{r}
+# Daymet unfucker
+
+# Mine
+daymet_unfucker_hum <-
+  function(f, index) {
+    f[[index]]$data %>%
+      bind_cols(site = f[[index]]$site, .name_repair = "unique") %>%
+      return()
+  }
+
+# Chat's
+daymet_unfucker_rob <- function(f, index = 1) { #Added index parameter
+  
+  data <- f[[index]]$data
+  site <- f[[index]]$site
+  
+  result <- dplyr::bind_cols(data, site = site)
+  print(result)
+  return(result)
+}
+
+daymet_unfucker_hum(t2_list, 1)
 
 ```
 
