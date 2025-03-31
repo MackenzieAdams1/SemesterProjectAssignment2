@@ -170,7 +170,7 @@ summarize(gage_data)
 ```{r}
 # automate downloading climate data
 
-write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
+# write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
 
 # daymet_all <- download_daymet_batch(file_location = "./gage_ids.csv", start = year(start), end = year(end), internal = T, simplify = F)
 # saveRDS(daymet_all, "DAYMET_all.rdata")
