@@ -292,33 +292,6 @@ lat_long_df <- data.frame(Site = site_names, Latitude = latitudes, Longitude = l
 
 
 ```{r}
-# Daymet unfucker
-
-# Mine
-daymet_unfucker_hum <-
-  function(f, index) {
-    f[[index]]$data %>%
-      bind_cols(site = f[[index]]$site, .name_repair = "unique") %>%
-      return()
-  }
-
-# Chat's
-daymet_unfucker_rob <- function(f, index = 1) { #Added index parameter
-  
-  data <- f[[index]]$data
-  site <- f[[index]]$site
-  
-  result <- dplyr::bind_cols(data, site = site)
-  print(result)
-  return(result)
-}
-
-daymet_unfucker_hum(t2_list, 1)
-
-```
-
-
-```{r}
 #Mackenzie 
 #find a way to make this more streamlined as in that it will generate lat long for a gage if you just put in a gage number
 
@@ -466,6 +439,7 @@ tmin_deg_c_skokomish_gg <- skokomish_weather_df %>%
   theme_linedraw() +
   labs(y = "Min Temperature (C)", x = "Date")
 ```
+
 
 ```{r}
 #building a map of the site locations
