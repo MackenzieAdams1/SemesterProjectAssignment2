@@ -129,3 +129,12 @@ gage_fish_all %>%
   geom_smooth()
 
 
+save
+
+
+write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
+
+
+
+
+
