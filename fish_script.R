@@ -99,4 +99,23 @@ gage_data_all <-
   ) %>%
   left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
 
+# ADD FISH DATA
+
+temp <- read.csv("./Dungeness Salmon Data.csv")
+
+temp <- 
+  temp %>%
+  filter(data_type == "TSAEJ")
+
+temp_fish_all <-
+  lapply("./Salmon_Data", read_csv) %>%
+  bind_rows()
+
+
+
+
+
+
+
+
 
