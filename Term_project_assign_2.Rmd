@@ -213,45 +213,33 @@ summarize(gage_data)
 # saveRDS(daymet_all, "DAYMET_all.rdata")
 
 
-# Downloading data mostly works. Now to append it...
+# Downloading data works. Now to append it...
 
 daymet_unfucker_hum <-
   function(f) {
     bind_cols(data = f$data, site = f$site, .name_repair = "unique")
   } 
 
-#unfucker that required an index number. Lets leave it sealed away but still in the code jic
-
-# daymet_unfucker_hum_idx <-
-#   function(f, index) {
-#     print(str(f[[index]]))
-#     bind_cols(data = f[[index]]$data, site = f[[index]]$site, .name_repair = "unique")
-#   } 
-
-
-#  THIS CHUNK IS THE CURRENT PROBLEM CHILD
-gage_data <- 
+gage_data_all <- 
   lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
   bind_rows() %>%
-  select(site = site, 
-         # This fucker specifically
-         date = as.Date(yday-1, origin = "1987-01-01"),
-         prcp_daily_mm = prcp..mm.day., 
-         t_max_C = tmax..deg.c., 
-         t_min_C = tmax..deg.c.)
-
-  
-peepee <- lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
-  bind_rows()
-  
-peepee2 <-
-  peepee %>%
+  rename(doy = yday, 
+         ann = year,
+         prcp_daily_mm = prcp..mm.day.,
+         t_max_C = tmax..deg.c.,
+         t_min_C = tmin..deg.c.) %>%
   mutate(
-    date = as.Date(yday-1, origin = "1987-01-01")
-  )
+    Date = make_datetime(year = ann, day = doy),
+    t_avg_C = (t_max_C - t_min_C)/2) %>%
+  select(site,
+         Date,
+         prcp_daily_mm,
+         t_max_C,
+         t_min_C,
+         t_avg_C
+         ) %>%
+  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
 
-
-as.Date(peepee$yday, origin = "1987-01-01")
 ```
 
 
@@ -400,6 +388,8 @@ temp_data_sk_df <- merge(tmax_deg_c_skokomish_df, tmin_deg_c_skokomish_df, by = 
 
 ```
 
+
+
 ```{r}
 #Mackenzie 
 #This code calculates the average daily temperature for the port angeles weather data.
@@ -411,7 +401,6 @@ temp_data_pa_df <- temp_data_pa_df %>%
 temp_data_sk_df <- temp_data_sk_df %>%
   mutate(avg_sk_temp_df = (value_tmax + value_tmin) / 2)
 ```
-
 
 
 
@@ -427,6 +416,7 @@ Skokomish <- Skokomish_Stream_Data %>%
 
 Dungeness/Elwha/Skokomish
 ```
+
 
 
 ```{r}
@@ -505,6 +495,16 @@ Generate a histogram or density plot of at least one variable in your dataset. T
 #  theme_minimal() +
 #  labs(title = "Density Plots for Variables",
  #      x = "Value", y = "Density")
+
+
+temp_fish <-
+  read.csv("./Dungeness Salmon Data.csv")
+
+
+temp_fish %>%
+  ggplot(aes(x = abundance_qty)) +
+  geom_histogram()
+
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
@@ -521,7 +521,7 @@ library(dplyr)
 
 # Create a data frame
 data_table <- data.frame(
-  Dataset_Name = c("Dataset1", 'Dataset2'),
+  Dataset_Name = c("", 'Dataset2'),
   Data_Source = c('NOAA', 'NRCS'), #Agency or institution name
   Data_Type = c("Climate", "Hydrology"), # what kind of data is it?
   Source_Link = c("https://www.link1/", 
