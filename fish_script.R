@@ -11,7 +11,7 @@ library(rnoaa) #add code make it reproduce
 library(zoo)
 library(daymetr)
 library(leaflet)
-
+library(fs)
 
 # USGS GAGE INFO/DATA 
 
@@ -95,27 +95,35 @@ gage_data_all <-
          prcp_daily_mm,
          t_max_C,
          t_min_C,
-         t_avg_C
+         t_avg_C,
+         ann
   ) %>%
   left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
 
 # ADD FISH DATA
 
-temp <- read.csv("./Dungeness Salmon Data.csv")
+#provide fish data directory. Maybe this can be automated, maybe not. If theirs not a package for it im not writing it tho.
+fish_files <-
+  dir_ls("./Salmon_Data/")
 
-temp <- 
-  temp %>%
-  filter(data_type == "TSAEJ")
+gage_fish_all <-
+  fish_files %>%
+  lapply(read_csv) %>%
+  bind_rows()%>%
+  filter(data_type == "TSAEJ") %>%
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_Gage"), .before = "stock_number") %>%
+  select(abundance_qty,
+         year,
+         site_name) %>%
+  left_join(gage_data_all,., by = c(
+    "ann" = "year",
+    "site_name" = "site_name"
+  )
+  )
 
-temp_fish_all <-
-  lapply("./Salmon_Data", read_csv) %>%
-  bind_rows()
 
-
-
-
-
-
-
+gage_fish_all %>%
+  ggplot(aes(x = Date, y = abundance_qty, color = site_name)) +
+  geom_point()
 
 
