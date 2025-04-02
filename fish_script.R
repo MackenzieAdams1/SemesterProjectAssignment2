@@ -121,9 +121,11 @@ gage_fish_all <-
   )
   )
 
+# REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
 
 gage_fish_all %>%
   ggplot(aes(x = Date, y = abundance_qty, color = site_name)) +
-  geom_point()
+  geom_point() +
+  geom_smooth()
 
 
