@@ -491,11 +491,13 @@ temp_fish <-
   read.csv("./Dungeness Salmon Data.csv")
 
 
-temp_fish %>%
-  ggplot(aes(x = abundance_qty)) +
-  geom_histogram()
+gage_fish_all %>%
+  ggplot(aes(x = t_avg_C, fill = prcp_daily_mm)) +
+  geom_density() +
+  facet_wrap(~ site_name)
 
 ```
+
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
 
@@ -506,33 +508,8 @@ Create a table in R and export it as a .csv file to submit with this assignment 
 In this table, include all datasets (up to now) that you will use for your term project. The script below specifies all of the sections required in this table, though you will need to change names and information accordingly in c(). Also, not everything in this table may pertain to you and your project. So we can change things accordingly. 
 
 ```{r, message=FALSE}
-# Load necessary library
-library(dplyr)
-
-# Create a data frame
-data_table <- data.frame(
-  Dataset_Name = c("", 'Dataset2'),
-  Data_Source = c('NOAA', 'NRCS'), #Agency or institution name
-  Data_Type = c("Climate", "Hydrology"), # what kind of data is it?
-  Source_Link = c("https://www.link1/", 
-                  "https://link2/"), # We will used these to access the sources. This is if you are getting data from the web. 
-  Key_variables = c('precipitation', 'soil_conductivity'), 
-  Temporal_range = c('2020-2021', '1979-today'),
-  Spatial_Coverage = c('Montana', 'Juneau_AK'),
-  Data_Quality = c("High", "Moderate"), # An example of high quality might be a dataset that has already been cleaned by an agency is not missing data in the period or space of interest. 
-  Data_Quality_notes = c('QCd with no missing data', 'some unexpected values'),
-  Feasibility = c("High", "Medium"), # How useable is this to you? Do you need help figuring out how to download it? Is there an R package that you need to learn to access the data?
-  Feasibility_notes = c('note1', 'note2'),
-  variable_type = c('explanatory', 'response')
-)
-
-# Display the table
-print(data_table)
-
-# Export the data table as a .csv to a file path of your choice:
-#exportpath <- file.path(getwd(), somefolder, term_assign_table.csv) #replace somefolde with an actual folder name that exists in your local environment
-#write.csv(data_able, exportpath, row.names=FALSE)
-```
+read.csv("./all_data_preview.csv")
+``` 
 
 Once this is exported, you can format if desired for readibility and submit the .csv with a completed .rmd. 
 
