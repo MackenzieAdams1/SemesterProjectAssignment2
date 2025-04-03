@@ -5,8 +5,6 @@ editor_options:
 ---
 ## Term Project Assignment 2 - 10 pnts
 
-TESTING THAT THIS WORKS
-
 In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
 
 ### Brainstorming
@@ -38,7 +36,7 @@ ANSWER:
 
 2) The data should all be in the form of time-series data, however, we will likely use the map function previously used in labs to display where the stream gages we are using information from are located. 
 
-3) The salmon return data will be survey type data from the stateofsalmon.wa.gov website. The stream discharge data will come from three different USGS gages. The precipitation and air temperature data will come from NOAA weather station records. 
+3) The salmon return data will be survey type data from the stateofsalmon.wa.gov website. The stream discharge data will come from three different USGS gages. The precipitation and air temperature data will come from daymet data.
 
 4) As salmon have a 3-5 year life cycle depending on the species a longer temporal length would be best, ideally spanning 20+ years so that patterns across multiple generations can be examined. The resolution of the data will depend on the variable. Salmon return data are reported as annual totals, so this data will be represented as a single value each year. However, having daily data for stream flow, precipitation, and air temperature would allow for examination of annual patterns and help to determine if there is a correlation between changes in these factors and salmon returns. Therefore these three variables will be examined on a daily basis. 
 
@@ -82,62 +80,7 @@ Be sure that your methods are [reproducible](https://guides.lib.uw.edu/research/
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Install needed packages
-
-WE STILL NEED THIS DONE!!!
 ```{r}
-# #Load packages
-# 
-# # pkgTest is a helper function to load packages and install packages only when they are not installed yet.
-# pkgTest <- function(x)
-# {
-#   if (x %in% rownames(installed.packages()) == FALSE) {
-#     install.packages(x, dependencies= TRUE)
-#   }
-#   library(x, character.only = TRUE)
-# }
-# neededPackages <- c("tidyverse", "lubridate", "Evapotranspiration") 
-
-# for (package in neededPackages){pkgTest(package)}
-
-#remotes::install_github("https://github.com/ropensci/rnoaa.git")
-#install.packages("daymetr")
-
-
-library(dataRetrieval)
-library(tidyverse)
-library(dplyr)
-library(patchwork)
-library(rnoaa) #add code make it reproduce
-library(zoo)
-library(daymetr)
-library(leaflet)
-
-```
-
-```{r}
-#Mackenzies Attempt at above code, all works except trying to cue the git link
-
-# Helper function to load packages and install them if they are not installed yet
-pkgTest <- function(x) {
-  if (x %in% rownames(installed.packages()) == FALSE) {
-    install.packages(x, dependencies = TRUE)
-  }
-  library(x, character.only = TRUE)
-}
-
-# List of needed packages
-neededPackages <- c("tidyverse", "lubridate", "Evapotranspiration", "dataRetrieval", "dplyr", "patchwork", "zoo", "daymetr", "leaflet")
-
-# Install and load needed packages
-for (package in neededPackages) {
-  pkgTest(package)
-}
-
-
-#remotes::install_github("https://github.com/MackenzieAdams1/Salmon-Term-Project.git")
-#install.packages("daymetr")
-
 # Load libraries
 library(dataRetrieval)
 library(tidyverse)
@@ -146,9 +89,7 @@ library(patchwork)
 library(zoo)
 library(daymetr)
 library(leaflet)
-
 ```
-
 
 
 ```{r}
@@ -239,6 +180,27 @@ gage_data_all <-
          t_avg_C
          ) %>%
   left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
+
+```
+
+```{r}
+#Mackenzie
+#this code imports the same data downloaded from stateofsalmonwa.org
+
+Dungeness_Salmon_df <- read.csv("Dungeness Salmon Data.csv")
+Elwha_Salmon_df <- read.csv("Elwha Salmon Data.csv")
+Skokomish_Salmon_df <- read.csv("Skokomish Salmon Data.csv")
+```
+
+```{r}
+Dungeness_Salmon_gg <- Dungeness_Salmon_df %>%
+   ggplot(aes(x=year, y= abundance_qty)) + geom_point() + theme_classic() + labs(x = "Year", y = "Salmon Return Abundance") + ggtitle("Dungeness River Salmon Returns 1978-2023")
+
+Elwha_Salmon_gg <- Elwha_Salmon_df %>%
+   ggplot(aes(x=year, y= abundance_qty)) + geom_point() + theme_classic() + labs(x = "Year", y = "Salmon Return Abundance") + ggtitle("Elwha River Salmon Returns 1978-2023")
+
+Skokomish_Salmon_gg <- Skokomish_Salmon_df %>%
+   ggplot(aes(x=year, y= abundance_qty)) + geom_point() + theme_classic() + labs(x = "Year", y = "Salmon Return Abundance") + ggtitle("Skokomish River Salmon Returns 1978-2023")
 
 ```
 
@@ -378,16 +340,31 @@ temp_data_sk_df <- temp_data_sk_df %>%
 
 
 ```{r}
-Dungeness <- Dungeness_Stream_Data %>%
-   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+Dungeness_Discharge_gg <- Dungeness_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)") +ggtitle("Dungeness Stream Flow") +
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 11),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
 
-Elwha <- Elwha_Stream_Data %>%
-   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+Elwha_Discharge_gg <- Elwha_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)") +ggtitle("Elwha Stream Flow") +
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 11),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
 
-Skokomish <- Skokomish_Stream_Data %>%
-   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)")
+Skokomish_Discharge_gg <- Skokomish_Stream_Data %>%
+   ggplot(aes(x=Date, y= Flow)) + geom_line() + theme_classic() + labs(x = "Date", y = "Discharge (cfs)") +ggtitle("Skokomish Stream Flow")+
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 11),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
 
-Dungeness/Elwha/Skokomish
+Dungeness_Discharge_gg/Elwha_Discharge_gg/Skokomish_Discharge_gg
 ```
 
 
@@ -397,8 +374,13 @@ prcp_mm_day_portangeles_gg <- portangeles_weather_df %>%
   filter(measurement == "prcp..mm.day.") %>%
   ggplot(aes(x = date, y = value)) +
   geom_line(color = "blue") +
-  theme_linedraw() +
-  labs(y = "Daily Precipitation (mm)", x = "Date")
+ theme_classic() +
+  labs(y = "Precipitation (mm)", x = "Date") +ggtitle("Port Angeles Precipitation (mm)") +
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 11),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
 
 tmax_deg_c_portangeles_gg <- portangeles_weather_df %>%
   filter(measurement == "tmax..deg.c.") %>%
@@ -413,6 +395,19 @@ tmin_deg_c_portangeles_gg <- portangeles_weather_df %>%
   geom_line(color = "blue") +
   theme_linedraw() +
   labs(y = "Min Temperature (C)", x = "Date")
+
+tavg_dec_c_portangeles_gg <- temp_data_pa_df %>%
+  ggplot(aes(x = date, y = avg_pa_temp_df)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Average Temperature (C)", x = "Date") +
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 13),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
+
+
 ```
 
 
@@ -421,9 +416,14 @@ tmin_deg_c_portangeles_gg <- portangeles_weather_df %>%
 prcp_mm_day_skokomish_gg <- skokomish_weather_df %>%
   filter(measurement == "prcp..mm.day.") %>%
   ggplot(aes(x = date, y = value)) +
-  geom_line(color = "blue") +
-  theme_linedraw() +
-  labs(y = "Daily Precipitation (mm)", x = "Date")
+  geom_line(color = "blue") + theme_classic() +
+  labs(y = "Precipitation (mm)", x = "Date") + ggtitle("Skokomish Precipitation (mm)")+
+  theme(axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 11),  
+    plot.title = element_text(size = 13),  
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 13))
+
 
 tmax_deg_c_skokomish_gg <- skokomish_weather_df %>%
   filter(measurement == "tmax..deg.c.") %>%
@@ -438,7 +438,23 @@ tmin_deg_c_skokomish_gg <- skokomish_weather_df %>%
   geom_line(color = "blue") +
   theme_linedraw() +
   labs(y = "Min Temperature (C)", x = "Date")
+
+temp_data_sk_gg <- temp_data_sk_df%>%
+  ggplot(aes(x = date, y = avg_sk_temp_df)) +
+  geom_line(color = "blue") +
+  theme_linedraw() +
+  labs(y = "Average Temperature (C)", x = "Date")
 ```
+
+```{r}
+#comparative figures 
+
+Dungeness_Discharge_gg/Elwha_Discharge_gg/Skokomish_Discharge_gg
+
+Dungeness_Discharge_gg/Elwha_Discharge_gg/prcp_mm_day_portangeles_gg/Skokomish_Discharge_gg/prcp_mm_day_skokomish_gg
+
+```
+
 
 
 ```{r}
