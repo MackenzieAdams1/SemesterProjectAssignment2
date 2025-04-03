@@ -50,13 +50,7 @@ Create at least one plot that summarizes the data and describe it's use to you. 
 ```{r}
 # USGS GAGE INFO/DATA 
 
-# With the "help" of Poole (he wrote it), this has been rewritten such that all the stream 
-# data is in one df.
-# Can talk through the implications of this later. But is very nice
-
 # This efficiently automates the process of getting all the stream data desired into one df.
-# This is allowed to be a df w/ minimal info bc it has to be user defined and im not gonna go 
-# thru the effort of developing a "frontend" for this
 
 gage_ids <- 
   tribble(
@@ -181,7 +175,6 @@ gage_fish_all %>%
   ggplot(aes(x = abundance_qty)) +
   geom_histogram() +
   facet_wrap(~site_name, nrow = 3, scale = "free")
-
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
