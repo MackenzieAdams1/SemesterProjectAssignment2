@@ -375,7 +375,7 @@ prcp_mm_day_portangeles_gg <- portangeles_weather_df %>%
   ggplot(aes(x = date, y = value)) +
   geom_line(color = "blue") +
  theme_classic() +
-  labs(y = "Precipitation (mm)", x = "Date") +ggtitle("Port Angeles Precipitation (mm)") +
+  labs(y = "Precipitation (mm)", x = "Date") +ggtitle("Port Angeles Precipitation") +
   theme(axis.title = element_text(size = 13), 
     axis.text = element_text(size = 11),  
     plot.title = element_text(size = 13),  
@@ -417,7 +417,7 @@ prcp_mm_day_skokomish_gg <- skokomish_weather_df %>%
   filter(measurement == "prcp..mm.day.") %>%
   ggplot(aes(x = date, y = value)) +
   geom_line(color = "blue") + theme_classic() +
-  labs(y = "Precipitation (mm)", x = "Date") + ggtitle("Skokomish Precipitation (mm)")+
+  labs(y = "Precipitation (mm)", x = "Date") + ggtitle("Skokomish Precipitation")+
   theme(axis.title = element_text(size = 13), 
     axis.text = element_text(size = 11),  
     plot.title = element_text(size = 13),  
