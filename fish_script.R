@@ -124,17 +124,6 @@ gage_fish_all <-
 
 # REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
 
-gage_fish_all %>%
-  ggplot(aes(x = Date, y = Flow)) + 
-  geom_line() +
-  facet_wrap(facets = "site_name", nrow = 3)
-
-gage_fish_all %>%
-  group_by(site_name)%>%
-  summarise(ann_avg = mean(Flow), feesh = abundance_qty) %>%
-  ggplot(aes(x = ann_avg, y = feesh)) +
-  geom_point()
-
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 
