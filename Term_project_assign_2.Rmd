@@ -136,7 +136,6 @@ for (package in neededPackages) {
 
 
 #remotes::install_github("https://github.com/MackenzieAdams1/Salmon-Term-Project.git")
-#install.packages("daymetr")
 
 # Load libraries
 library(dataRetrieval)
@@ -252,6 +251,21 @@ peepee2 <-
 
 
 as.Date(peepee$yday, origin = "1987-01-01")
+```
+
+```{r}
+#Mackenzie
+#this code imports the same data downloaded from stateofsalmonwa.org
+
+Dungeness_Salmon_df <- read.csv("Dungeness Salmon Data.csv")
+Elwha_Salmon_df <- read.csv("Elwha Salmon Data.csv")
+Skokomish_Salmon_df <- read.csv("Skokomish Salmon Data.csv")
+```
+
+```{r}
+Dungeness_Salmon <- Dungeness_Salmon_df %>%
+   ggplot(aes(x=year, y= abundance_qty)) + geom_point() + theme_classic()
+
 ```
 
 
