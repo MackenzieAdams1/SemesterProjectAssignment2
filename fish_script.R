@@ -75,7 +75,7 @@ summarize(gage_data)
 
 # Downloading data works. Now to append it...
 
-daymet_unfucker_hum <-
+daymet_reorg <-
   function(f) {
     bind_cols(data = f$data, site = f$site, .name_repair = "unique")
   } 
@@ -103,7 +103,7 @@ gage_data_all <-
 
 # ADD FISH DATA
 
-#provide fish data directory. Maybe this can be automated, maybe not. If theirs not a package for it im not writing it tho.
+# provide fish data directory. Maybe this can be automated, maybe not. If theirs not a package for it im not writing it tho.
 fish_files <-
   dir_ls("./Salmon_Data/")
 
@@ -127,14 +127,43 @@ gage_fish_all <-
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 
-gage_fish_all %>%
+gage.labs <- c("Dungeness Stream", "Elwha Stream", "Skokomish Stream")
+
+
+temp_v_returns <-
+  gage_fish_all %>%
   group_by(site_name, ann) %>%
   summarise(ann_temp = mean(t_avg_C), salmon_returns = mean(abundance_qty)) %>%
-  ggplot(aes(x = ann, y = salmon_returns, color = site_name)) +
+  ggplot(aes(x = ann_temp, y = salmon_returns, color = site_name)) +
   geom_point() +
-  facet_wrap(facets = "site_name", nrow = 3, scale = "free") +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scale = "free") + #Modify facet labels
   stat_smooth(method = "lm", se = F) +
   stat_regline_equation(label.x.npc = "middle", label.y.npc = "top") +
-  stat_cor(label.x.npc = "left", label.y.npc = "top")
+  stat_cor(label.x.npc = "left", label.y.npc = "top") +
+  labs(y = "Salmon Returns" , x = "Avg Temperature (C)") +
+  theme(legend.position = "none") #Hide legend
+
+
+ggsave("temp_v_returns.png", temp_v_returns, width = 10, height = 5, dpi = "retina")  
+  
+
+temp_fish <- read.csv("./Salmon_Data/Dungeness Salmon Data.csv")
+
+
+gage_fish_all %>%
+  ggplot(aes(x = Date, y = Flow)) +
+  geom_line() +
+  facet_wrap(~site_name, nrow = 3)
+
+
+gage_fish_all %>%
+  ggplot(aes(x = Date, y = Flow)) +
+  geom_line() +
+  geom_line(aes(x = Date, y = prcp_daily_mm)) 
+# +
+#   facet_wrap(facets = "site_name", nrow = 3, scales = "free")
   
   
+  
+
+

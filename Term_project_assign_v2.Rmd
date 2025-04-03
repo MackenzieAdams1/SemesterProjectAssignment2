@@ -1,0 +1,151 @@
+## Term Project Assignment 2 - 10 pnts
+
+In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
+
+### Brainstorming
+
+**Q1. What is the primary research question/objective for your term project? (1-2 sentences)(1 pt)** <br>
+Think of this as your first approach to developing a research question. It should reflect a clear purpose and be specific enough to guide your initial search for data, but it likely will evolve throughout this assignment. That is okay, even expected. You will be asked for a refined response at the end of the assignment.<br>
+Consider: <br>
+- The problem or issue you want to address  <br>
+- What specific phenomenon within that issue are you interested in understanding  <br>
+- What measurable or observable outcomes do you want to analyze.  <br>
+For example, instead of 'how does climate change affect forests?', you might consider 'How has seasonal precipitation variability impacted the timing of peak NDVI in the Pacific Northwest from 2000 to 2020.' Note that this question is specific enough to guide your search for the necessary data, such as precipitation records and NDVI time series. <br>
+ANSWER:
+
+
+**Q2. What are 2-3 types of data your research question requires? Address each sub-question (2 pts)**
+Be as specific as you can, what types of variables or indicators are you looking for? <br>
+What format should the data be in (e.g., spatial datasets, time-series data)? <br>
+What might be the origin of this data? (e.g., satellite imagery, weather station records, survey data?) <br>
+What temporal length and resolution would be ideal to answer this question?<br>
+ANSWER:
+
+
+### Data exploration and selection
+
+Now that you have an idea of what kind of data your question requires, the next step is to locate actual datasets that support your inquiry. There are numerous datasets available to public use, including public repositories, government agencies, academic institutions, even data uploaded to repositories like Zendodo and Figshare making data for specific studies discoverable and citable by other researchers. You may even have datasets from your own research that you can use. (Note: If you plan to use a dataset from your own research, you must have direct access to it now, not just a promise that you can obtain it later. Do not commit to a dataset unless you already have it and can work with it this semester). 
+It is up to you to explore a variety of sources and identify datasets that you can retrieve and work with, but here are some ideas and suggestions to get you started. 
+
+Many of these platforms allow R access to their datasets with packages that facilitate downloading, managing, and analyzing the data directly within R. However if you can not find an appropriate package, see below for a webscraping example. <br>
+
+asdfsad
+
+Climate or weather data:<br>
+[NOAA](https://www.ncei.noaa.gov/cdo-web/),<br> [SNOTEL](https://www.nrcs.usda.gov/resources/data-and-reports/snow-and-water-interactive-map], NASA POWER[https://power.larc.nasa.gov/data-access-viewer/), <br> and [Google's climate engine](https://www.climateengine.org/) are all potential sources of earth data. <br>
+
+Hydrological data: [USGS](https://waterdata.usgs.gov/nwis/rt) <br>
+
+Soil data: [Web Soil Survey](https://websoilsurvey.nrcs.usda.gov/app/), try R package soilDB <br>
+
+Water quality and air pollution: [EPA Envirofacts](https://enviro.epa.gov/)<br>
+
+
+Fire: [Monitoring Trends in Burn Severity](https://www.mtbs.gov/) <br>
+
+Remotely sensed spatial data: You may have already some experience with Google Earth Engine. This is a fast way to access [an incredible library](https://developers.google.com/earth-engine/datasets/) of resources. If you have used this in other courses but feel rusty, we can help!  Also check out [this e-book](https://www.eefabook.org/go-to-the-book.html). However, if your interest is in a few images, USGS' Earth Explorer [GloVis](https://glovis.usgs.gov/) is also a good resource. 
+
+#### Expand your search
+This is not an exhaustive list of possibilities. Consider searching MSU's library databases. For example, the Web of Science database contains organized searchable datasets built by published researchers. Google searches using advanced search operators to include specific file types with your search terms can be helpful (e.g., .csv, .xlsx, .geojson). Engage with AI tools to explore potential datasets or repositories based on your specific topic. An active approach to searching and learning will help you discover datasets that will support your research question. <br> You can download and import data if the dataset is small, or for large datasets, you might try webscraping. 
+
+Webscraping in R is a method of extracting data from web pages when the data isn't available through an API or a direct download. Check out some of the methods in this 15 min video: [webscraping example for R with ChatGPT](https://youtu.be/MHdMFxUyGdk). There are many similar tutorials, some tailored to specific data types. Take some time to explore the available resources.
+
+#### Adapt your research question
+Once you spend a solid hour or two searching databases, you may find that you need to adapt your research question based on data availability. You will likely spend some time refining your initial question to fit the datasets you find and that is encouraged! Then resume the dataset search, and continue refining your question and searching until you can develop an executable methodology. <br>
+
+**Q3. Explore your data, this part requires 2 answers (3 pnts total)**
+
+You are encouraged to explore many packages and write many more code chunks for your personal use. However, for the assignment submission, retrieve at least one dataset relevant to your question using an R package like dataRetrieval or by webscraping in R. If you are using your own data you can start a project with necessary .Rmd, .csv, etc. If you would like to house this as a github repo let me know and I will help you. 
+
+Be sure that your methods are [reproducible](https://guides.lib.uw.edu/research/reproducibility), meaning I should be able to run your code from my computer and reprodduce your workflow. Similarly, try writing required packages using a the function script below. This ensures that if another user does not have a package installed, it will be installed before it is loaded.  
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install needed packages
+
+```{r}
+# #Load packages
+# 
+# # pkgTest is a helper function to load packages and install packages only when they are not installed yet.
+# pkgTest <- function(x)
+# {
+#   if (x %in% rownames(installed.packages()) == FALSE) {
+#     install.packages(x, dependencies= TRUE)
+#   }
+#   library(x, character.only = TRUE)
+# }
+# neededPackages <- c("tidyverse", "lubridate", "Evapotranspiration") 
+
+# for (package in neededPackages){pkgTest(package)}
+```
+
+
+**Write a brief summary (3-4 sentences) describing your data.** 
+
+Generate plots:
+Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
+
+```{r}
+
+```
+
+Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
+
+```{r}
+#plottable_vars <- dfname %>%
+#  dplyr::select(variable1, variable2,...)
+                
+#long <- plottable_vars %>%
+#  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
+
+# Plot density plots for each variable
+#ggplot(long, aes(x = Value, fill = Variable)) +
+#  geom_density(alpha = 0.5) +  # Add transparency for overlapping densities
+# facet_wrap(~ Variable, scales = "free", ncol = 2) +  # Create separate panels per variable
+#  theme_minimal() +
+#  labs(title = "Density Plots for Variables",
+ #      x = "Value", y = "Density")
+```
+
+**What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
+
+
+**Q4. Putting it all together (3 pts)**
+Create a table in R and export it as a .csv file to submit with this assignment .rmd.
+
+In this table, include all datasets (up to now) that you will use for your term project. The script below specifies all of the sections required in this table, though you will need to change names and information accordingly in c(). Also, not everything in this table may pertain to you and your project. So we can change things accordingly. 
+
+```{r, message=FALSE}
+# Load necessary library
+library(dplyr)
+
+# Create a data frame
+data_table <- data.frame(
+  Dataset_Name = c("Dataset1", 'Dataset2'),
+  Data_Source = c('NOAA', 'NRCS'), #Agency or institution name
+  Data_Type = c("Climate", "Hydrology"), # what kind of data is it?
+  Source_Link = c("https://www.link1/", 
+                  "https://link2/"), # We will used these to access the sources. This is if you are getting data from the web. 
+  Key_variables = c('precipitation', 'soil_conductivity'), 
+  Temporal_range = c('2020-2021', '1979-today'),
+  Spatial_Coverage = c('Montana', 'Juneau_AK'),
+  Data_Quality = c("High", "Moderate"), # An example of high quality might be a dataset that has already been cleaned by an agency is not missing data in the period or space of interest. 
+  Data_Quality_notes = c('QCd with no missing data', 'some unexpected values'),
+  Feasibility = c("High", "Medium"), # How useable is this to you? Do you need help figuring out how to download it? Is there an R package that you need to learn to access the data?
+  Feasibility_notes = c('note1', 'note2'),
+  variable_type = c('explanatory', 'response')
+)
+
+# Display the table
+print(data_table)
+
+# Export the data table as a .csv to a file path of your choice:
+#exportpath <- file.path(getwd(), somefolder, term_assign_table.csv) #replace somefolde with an actual folder name that exists in your local environment
+#write.csv(data_able, exportpath, row.names=FALSE)
+```
+
+Once this is exported, you can format if desired for readibility and submit the .csv with a completed .rmd. 
+
+**Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
