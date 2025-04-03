@@ -12,6 +12,7 @@ library(zoo)
 library(daymetr)
 library(leaflet)
 library(fs)
+library(ggpubr)
 
 # USGS GAGE INFO/DATA 
 
@@ -124,17 +125,27 @@ gage_fish_all <-
 # REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
 
 gage_fish_all %>%
-  ggplot(aes(x = Date, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth()
+  ggplot(aes(x = Date, y = Flow)) + 
+  geom_line() +
+  facet_wrap(facets = "site_name", nrow = 3)
 
-
-save
-
+gage_fish_all %>%
+  group_by(site_name)%>%
+  summarise(ann_avg = mean(Flow), feesh = abundance_qty) %>%
+  ggplot(aes(x = ann_avg, y = feesh)) +
+  geom_point()
 
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 
-
-
-
+gage_fish_all %>%
+  group_by(site_name, ann) %>%
+  summarise(ann_temp = mean(t_avg_C), salmon_returns = mean(abundance_qty)) %>%
+  ggplot(aes(x = ann, y = salmon_returns, color = site_name)) +
+  geom_point() +
+  facet_wrap(facets = "site_name", nrow = 3, scale = "free") +
+  stat_smooth(method = "lm", se = F) +
+  stat_regline_equation(label.x.npc = "middle", label.y.npc = "top") +
+  stat_cor(label.x.npc = "left", label.y.npc = "top")
+  
+  
