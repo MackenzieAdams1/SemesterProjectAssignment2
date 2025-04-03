@@ -5,14 +5,8 @@ In this assignment you will develop the main goal and objectives of your term pr
 ### Brainstorming
 
 **Q1. What is the primary research question/objective for your term project? (1-2 sentences)(1 pt)** <br>
-Think of this as your first approach to developing a research question. It should reflect a clear purpose and be specific enough to guide your initial search for data, but it likely will evolve throughout this assignment. That is okay, even expected. You will be asked for a refined response at the end of the assignment.<br>
-Consider: <br>
-- The problem or issue you want to address  <br>
-- What specific phenomenon within that issue are you interested in understanding  <br>
-- What measurable or observable outcomes do you want to analyze.  <br>
-For example, instead of 'how does climate change affect forests?', you might consider 'How has seasonal precipitation variability impacted the timing of peak NDVI in the Pacific Northwest from 2000 to 2020.' Note that this question is specific enough to guide your search for the necessary data, such as precipitation records and NDVI time series. <br>
-ANSWER:
 
+ANSWER: How has variability in stream discharge, precipitation, and air temperature impacted salmon returns in Western Washington.
 
 **Q2. What are 2-3 types of data your research question requires? Address each sub-question (2 pts)**
 Be as specific as you can, what types of variables or indicators are you looking for? <br>
