@@ -81,7 +81,7 @@ daymet_reorg <-
   } 
 
 gage_data_all <- 
-  lapply(readRDS("./DAYMET_all.rdata"), daymet_unfucker_hum) %>%
+  lapply(readRDS("./DAYMET_all.rdata"), daymet_reorg) %>%
   bind_rows() %>%
   rename(doy = yday, 
          ann = year,
