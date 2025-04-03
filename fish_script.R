@@ -7,7 +7,6 @@ library(dataRetrieval)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
-library(rnoaa) #add code make it reproduce
 library(zoo)
 library(daymetr)
 library(leaflet)

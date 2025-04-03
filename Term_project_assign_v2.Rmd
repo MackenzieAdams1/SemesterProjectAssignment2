@@ -42,29 +42,146 @@ library(ggpubr)
 
 **Write a brief summary (3-4 sentences) describing your data.** 
 
+ANSWER BELOW PLOT
+
 Generate plots:
 Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
 
 ```{r}
+# USGS GAGE INFO/DATA 
+
+# With the "help" of Poole (he wrote it), this has been rewritten such that all the stream 
+# data is in one df.
+# Can talk through the implications of this later. But is very nice
+
+# This efficiently automates the process of getting all the stream data desired into one df.
+# This is allowed to be a df w/ minimal info bc it has to be user defined and im not gonna go 
+# thru the effort of developing a "frontend" for this
+
+gage_ids <- 
+  tribble(
+    ~site_name,        ~site_no,
+    "Dungeness_Gage",  "12048000",
+    "Elwha_Gage",      "12045500",
+    "Skokomish_Gage",  "12061500")
+
+# set all the parameters
+start <- date("1987-10-01")
+end <- date("2023-9-30")
+para <-c("00060", "00065")
+
+# if sites in gage_ids are changed, uncomment the code below and run it once. This stores the 
+# data locally and eventually in the repo if its pushed. This is mostly to be polite to the  
+# USGS hosting service.
+
+# NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
+# saveRDS(NWIS_data, "NWIS_data.rdata")
+
+# NWIS_meta <- readNWISsite(gage_ids$site_no)
+# saveRDS(NWIS_meta, "NWIS_meta.rdata")
+
+gage_ids <- 
+  readRDS("NWIS_meta.rdata") %>% 
+  select(site_no,
+         dec_lat_va, 
+         dec_long_va) %>%
+  inner_join(gage_ids, .)
+
+gage_data <-
+  readRDS("NWIS_data.rdata") %>%
+  inner_join(gage_ids, .) %>%
+  renameNWISColumns() %>%
+  group_by(site_name, site_no)
+
+
+# Shows all unique grouped elements in gage_data. Verifies I got all the desired gages
+summarize(gage_data)
 
 ```
+
+
+```{r}
+# WEATHER DATA ACQUISITION 
+
+# automate downloading climate data
+
+# write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
+
+# daymet_all <- download_daymet_batch(file_location = "./gage_ids.csv", start = year(start), end = year(end), internal = T, simplify = F)
+# saveRDS(daymet_all, "DAYMET_all.rdata")
+
+
+# Downloading data works. Now to append it...
+
+daymet_reorg <-
+  function(f) {
+    bind_cols(data = f$data, site = f$site, .name_repair = "unique")
+  } 
+
+gage_data_all <- 
+  lapply(readRDS("./DAYMET_all.rdata"), daymet_reorg) %>%
+  bind_rows() %>%
+  rename(doy = yday, 
+         ann = year,
+         prcp_daily_mm = prcp..mm.day.,
+         t_max_C = tmax..deg.c.,
+         t_min_C = tmin..deg.c.) %>%
+  mutate(
+    Date = make_datetime(year = ann, day = doy),
+    t_avg_C = (t_max_C - t_min_C)/2) %>%
+  select(site,
+         Date,
+         prcp_daily_mm,
+         t_max_C,
+         t_min_C,
+         t_avg_C,
+         ann
+  ) %>%
+  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
+```
+
+
+```{r}
+# ADD FISH DATA
+
+# provide fish data directory. Maybe this can be automated, maybe not. If there's not a package for it I'm not writing it tho.
+
+fish_files <-
+  dir_ls("./Salmon_Data/")
+
+gage_fish_all <-
+  fish_files %>%
+  lapply(read_csv) %>%
+  bind_rows()%>%
+  filter(data_type == "TSAEJ") %>%
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_Gage"), .before = "stock_number") %>%
+  select(abundance_qty,
+         year,
+         site_name) %>%
+  left_join(gage_data_all,., by = c(
+    "ann" = "year",
+    "site_name" = "site_name"
+  )
+  )
+
+# REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
+
+gage_fish_all %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line() +
+  facet_wrap(~ site_name, nrow  = 3, scale = "free")
+
+```
+
 
 Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
 
 ```{r}
-#plottable_vars <- dfname %>%
-#  dplyr::select(variable1, variable2,...)
-                
-#long <- plottable_vars %>%
-#  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
+gage_fish_all %>%
+  ggplot(aes(x = abundance_qty)) +
+  geom_histogram() +
+  facet_wrap(~site_name, nrow = 3, scale = "free")
 
-# Plot density plots for each variable
-#ggplot(long, aes(x = Value, fill = Variable)) +
-#  geom_density(alpha = 0.5) +  # Add transparency for overlapping densities
-# facet_wrap(~ Variable, scales = "free", ncol = 2) +  # Create separate panels per variable
-#  theme_minimal() +
-#  labs(title = "Density Plots for Variables",
- #      x = "Value", y = "Density")
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
@@ -77,34 +194,14 @@ Create a table in R and export it as a .csv file to submit with this assignment 
 In this table, include all datasets (up to now) that you will use for your term project. The script below specifies all of the sections required in this table, though you will need to change names and information accordingly in c(). Also, not everything in this table may pertain to you and your project. So we can change things accordingly. 
 
 ```{r, message=FALSE}
-# Load necessary library
-library(dplyr)
+write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
-# Create a data frame
-data_table <- data.frame(
-  Dataset_Name = c("Dataset1", 'Dataset2'),
-  Data_Source = c('NOAA', 'NRCS'), #Agency or institution name
-  Data_Type = c("Climate", "Hydrology"), # what kind of data is it?
-  Source_Link = c("https://www.link1/", 
-                  "https://link2/"), # We will used these to access the sources. This is if you are getting data from the web. 
-  Key_variables = c('precipitation', 'soil_conductivity'), 
-  Temporal_range = c('2020-2021', '1979-today'),
-  Spatial_Coverage = c('Montana', 'Juneau_AK'),
-  Data_Quality = c("High", "Moderate"), # An example of high quality might be a dataset that has already been cleaned by an agency is not missing data in the period or space of interest. 
-  Data_Quality_notes = c('QCd with no missing data', 'some unexpected values'),
-  Feasibility = c("High", "Medium"), # How useable is this to you? Do you need help figuring out how to download it? Is there an R package that you need to learn to access the data?
-  Feasibility_notes = c('note1', 'note2'),
-  variable_type = c('explanatory', 'response')
-)
-
-# Display the table
-print(data_table)
-
-# Export the data table as a .csv to a file path of your choice:
-#exportpath <- file.path(getwd(), somefolder, term_assign_table.csv) #replace somefolde with an actual folder name that exists in your local environment
-#write.csv(data_able, exportpath, row.names=FALSE)
+data_slice <- read.csv("./all_data_preview.csv")
 ```
 
 Once this is exported, you can format if desired for readibility and submit the .csv with a completed .rmd. 
 
 **Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
+
+How have fluctuations in stream discharge, precipitation, and air temperature influenced the survivability and return rates of Chinook salmon in Western Washington from 1987 to 2023? The data sources above will help to answer our question by providing additional insights into potential variables impacted salmon runs. Precipitation and stream discharge values will help us to analyze the flow conditions that salmon populations were experiencing within a given year and track the correlating impacts on salmon return numbers. Additionally, air temperature will help us to better understand stream conditions that the salmon were experiencing within a given season and tie these values to low flows. These climatological trends can then we tracked to analyze how variables that salmon experienced during the juvenile stage impact the return numbers three to five years later. 
+
