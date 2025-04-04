@@ -61,9 +61,9 @@ ANSWER BELOW PLOT
 gage_ids <- 
   tribble(
     ~site_name,        ~site_no,
-    "Dungeness_Gage",  "12048000",
-    "Elwha_Gage",      "12045500",
-    "Skokomish_Gage",  "12061500")
+    "Dungeness_River",  "12048000",
+    "Elwha_River",      "12045500",
+    "Skokomish_River",  "12061500")
 
 # set all the parameters
 start <- date("1987-10-01")
@@ -151,7 +151,7 @@ gage_fish_all <-
   lapply(read_csv) %>%
   bind_rows()%>%
   filter(data_type == "TSAEJ") %>%
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_Gage"), .before = "stock_number") %>%
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>%
   select(abundance_qty,
          year,
          site_name) %>%
@@ -160,29 +160,55 @@ gage_fish_all <-
     "site_name" = "site_name"
   )
   )
+```
 
-# REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
+
+```{r}
+#This code produces a figure that shows years on the x axis and discharge on the y-axis for the three rivers of interest. The Dungeness River produces substantially less discharge compared to the Elwha and the Skokomish, therefore we set the boundaries for all three to be "free" so that patterns in discharge can more easily be examined and the data fills up the whole graph area.
 
 gage_fish_all %>%
   ggplot(aes(x = Date, y = Flow, color = site_name)) +
-  geom_line() +
-  facet_wrap(~ site_name, nrow  = 3, scale = "free")
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ site_name, nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") + 
+  theme(strip.text = element_text(size = 12), axis.title.x = element_text(size = 14), 
+  axis.title.y = element_text(size = 14), legend.title = element_text(size = 12))
 
 ```
+
+ANSWER: 
+
+The plot we created shows year on the x axis and Discharge on the Y axis for the three rivers we are examining. This graph serves as an initial data exploration to examine patterns in discharge, potential flood events, and how much discharge is normal for each stream. There do not appear to be any significant gaps in our data set for the period we are examining (1987-2023). However, as seen in the Skokomish graph around 2010 the discharge dropped substantially and has remained this way ever since, with the discharge increasingly slightly in 2022 and 2023. Upon initial observation the dams on the Skokomish are not new, however, there was a lawsuit that occurred between the Skokomish Tribe and the State of Washington regarding discharge from the dams into the north fork of Skokomish which is located upstream of the gage we are using. Therefore, more research needs to be done to explore potential causes of this change. 
 
 
 Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
 
 ```{r}
+#This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales are set to free so that the patterns of returns for each river can be adequately analyzed.
+
 gage_fish_all %>%
-  ggplot(aes(x = abundance_qty)) +
+  ggplot(aes(x = abundance_qty, fill = site_name)) +
   geom_histogram() +
-  facet_wrap(~site_name, nrow = 3, scale = "free")
+  facet_wrap(~site_name, nrow = 3, scale = "free") + 
+  labs(
+    x = "Abundance Quantity",
+    y = "Frequency",
+    title = "Abundance Quantity by Site", 
+    fill = "Site") +
+  theme_minimal() +  
+  theme( strip.text = element_text(size = 12),  
+    axis.title.x = element_text(size = 14),  
+    axis.title.y = element_text(size = 14),  
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 12))
+
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
 
-
+ANSWER:
+The above plot tells us that annual salmon returns on the Dungeness River typically fall within 20-750 salmon, whereas annual returns on the Elwha and the Skokomish typically fall within 0-3,000 salmon. This data is as expected with a majority of salmon returns falling into the above defined parameters with some other larger runs occurring in all three rivers across the time of the data set. We need to consider the distribution of data when deciding on an analysis method as some methods assume a specific distribution is present in the data and if the data does not meet these assumptions the results that are produced may be misleading. Therefore, by assessing the distribution educated decisions can be made regarding what types of analysis methods would be the most appropriate. 
 
 **Q4. Putting it all together (3 pts)**
 Create a table in R and export it as a .csv file to submit with this assignment .rmd.
@@ -199,5 +225,5 @@ Once this is exported, you can format if desired for readibility and submit the 
 
 **Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
 
-How have fluctuations in stream discharge, precipitation, and air temperature influenced the survivability and return rates of Chinook salmon in Western Washington from 1987 to 2023? The data sources above will help to answer our question by providing additional insights into potential variables impacted salmon runs. Precipitation and stream discharge values will help us to analyze the flow conditions that salmon populations were experiencing within a given year and track the correlating impacts on salmon return numbers. Additionally, air temperature will help us to better understand stream conditions that the salmon were experiencing within a given season and tie these values to low flows. These climatological trends can then we tracked to analyze how variables that salmon experienced during the juvenile stage impact the return numbers three to five years later. 
+How have fluctuations in stream discharge, precipitation, and air temperature influenced the survivability and return rates of Chinook salmon in Western Washington from 1987 to 2023? The data sources above will help to answer our question by providing additional insights into potential variables impacted salmon runs. Precipitation and stream discharge values will help us to analyze the flow conditions that salmon populations were experiencing during the juvenile stage and track the correlating impacts on salmon return numbers. Additionally, air temperature will help us to better understand stream conditions that the salmon were experiencing within a given season and tie these values to potentially high stream temperatures that negatively impact juvenile salmon survivability. These climatological trends can then be analyzed to determine how conditions that salmon experience during the juvenile stage impact the salmon return numbers three to five years later. 
 
