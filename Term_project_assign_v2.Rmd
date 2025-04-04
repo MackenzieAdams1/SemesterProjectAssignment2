@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 ## Term Project Assignment 2 - 10 pnts
 
 In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
@@ -12,12 +17,11 @@ ANSWER: How has variability in stream discharge, precipitation, and air temperat
 ANSWER:
 1) For this project the variables and indicators we are looking for is salmon return data (specifically from streams with USGS gages), stream discharge data, precipitation data, and air temperature data.
 
-2) The data should all be in the form of time-series data, however, we will likely use the map function previously used in labs to display where the stream gages we are using information from are located. 
+2) The data should all be in the form of time-series data, however, we will likely use the map function previously used in labs to display where the stream gages we are using are located. 
 
 3) The salmon return data will be survey type data from the stateofsalmon.wa.gov website. The stream discharge data will come from three different USGS gages. The precipitation and air temperature data will come from daymet data.
 
-4) As salmon have a 3-5 year life cycle depending on the species a longer temporal length would be best, ideally spanning 20+ years so that patterns across multiple generations can be examined. The resolution of the data will depend on the variable. Salmon return data are reported as annual totals, so this data will be represented as a single value each year. However, having daily data for stream flow, precipitation, and air temperature would allow for examination of annual patterns and help to determine if there is a correlation between changes in these factors and salmon returns. Therefore these three variables will be examined on a daily basis. 
-
+4) As salmon have a 3-5 year life cycle depending on the species a longer temporal length would be best, ideally spanning 20+ years so that patterns across multiple generations can be examined. The resolution of the data will depend on the variable. Salmon return data are reported as annual totals, so this data will be represented as a single value each year. However, using daily data for stream flow, precipitation, and air temperature would allow for examination of annual patterns and help to determine if there is a correlation between changes in these factors and salmon returns. Therefore the temporal length for these three variables will be on a daily basis. 
 
 ### Data exploration and selection
 
@@ -26,7 +30,7 @@ ANSWER:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Install needed packages
+Install and load needed packages
 
 ```{r}
 library(dataRetrieval)
@@ -42,10 +46,12 @@ library(ggpubr)
 
 **Write a brief summary (3-4 sentences) describing your data.** 
 
-ANSWER BELOW PLOT
+Answer: For our project we are using four different types of data, salmon return data, stream discharge, precipitation, and air temperature. The salmon return data is from the stateofsalmon.wa.org website and is reported as one value each year of the total number of wild and hatchery fish that returned to a given river each year. The stream discharge data comes from three USGS gauges and we are looking at daily data from 1987-2023. The precipitation and air temperature data were retrieved from daymet and is unique for all three of the sites.
 
 Generate plots:
 Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
+
+ANSWER BELOW PLOT
 
 ```{r}
 # USGS GAGE INFO/DATA 
@@ -64,9 +70,7 @@ start <- date("1987-10-01")
 end <- date("2023-9-30")
 para <-c("00060", "00065")
 
-# if sites in gage_ids are changed, uncomment the code below and run it once. This stores the 
-# data locally and eventually in the repo if its pushed. This is mostly to be polite to the  
-# USGS hosting service.
+# if sites in gage_ids are changed, uncomment the code below and run it once. This stores the data locally and eventually in the repo if its pushed. This is mostly to be polite to the USGS hosting service.
 
 # NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
 # saveRDS(NWIS_data, "NWIS_data.rdata")
@@ -88,16 +92,15 @@ gage_data <-
   group_by(site_name, site_no)
 
 
-# Shows all unique grouped elements in gage_data. Verifies I got all the desired gages
+# Shows all unique grouped elements in gage_data. Verifies that all the desired gages were selected and are in the data frame.
+
 summarize(gage_data)
 
 ```
 
 
 ```{r}
-# WEATHER DATA ACQUISITION 
-
-# automate downloading climate data
+# WEATHER DATA ACQUISITION: This code retrieves the desired precipitation and temperature data.
 
 # write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
 
@@ -122,7 +125,7 @@ gage_data_all <-
          t_min_C = tmin..deg.c.) %>%
   mutate(
     Date = make_datetime(year = ann, day = doy),
-    t_avg_C = (t_max_C - t_min_C)/2) %>%
+    t_avg_C = (t_max_C + t_min_C)/2) %>%
   select(site,
          Date,
          prcp_daily_mm,
@@ -132,13 +135,13 @@ gage_data_all <-
          ann
   ) %>%
   left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
+
+#Now the discharge, precipitation, and temperature data is all in one data frame.
 ```
 
 
 ```{r}
-# ADD FISH DATA
-
-# provide fish data directory. Maybe this can be automated, maybe not. If there's not a package for it I'm not writing it tho.
+# ADD FISH DATA: This code reads in csv files containing salmon return data downloaded for the particular rivers of interest from the stateofsalmon.wa.gov site.
 
 fish_files <-
   dir_ls("./Salmon_Data/")
