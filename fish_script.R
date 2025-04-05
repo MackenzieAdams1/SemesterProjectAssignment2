@@ -1,17 +1,15 @@
 # LOADING PACKAGES
 
-#remotes::install_github("https://github.com/ropensci/rnoaa.git")
-#install.packages("daymetr")
-
 library(dataRetrieval)
 library(tidyverse)
 library(dplyr)
 library(patchwork)
 library(zoo)
-library(daymetr)
-library(leaflet)
+library(daymetr) 
+library(leaflet) 
 library(fs)
-library(ggpubr)
+library(ggpubr) # for adding R and P vals to graphs
+library(DescTools) # for doing Mode statistical calc
 
 # USGS GAGE INFO/DATA 
 
@@ -26,9 +24,9 @@ library(ggpubr)
 gage_ids <- 
   tribble(
     ~site_name,        ~site_no,
-    "Dungeness_Gage",  "12048000",
-    "Elwha_Gage",      "12045500",
-    "Skokomish_Gage",  "12061500")
+    "Dungeness_River",  "12048000",
+    "Elwha_River",      "12045500",
+    "Skokomish_River",  "12061500")
 
 # set all the parameters
 start <- date("1987-10-01")
@@ -41,7 +39,7 @@ para <-c("00060", "00065")
 
 # NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
 # saveRDS(NWIS_data, "NWIS_data.rdata")
-
+# 
 # NWIS_meta <- readNWISsite(gage_ids$site_no)
 # saveRDS(NWIS_meta, "NWIS_meta.rdata")
 
@@ -56,6 +54,7 @@ gage_data <-
   readRDS("NWIS_data.rdata") %>%
   inner_join(gage_ids, .) %>%
   renameNWISColumns() %>%
+  drop_na(Flow) %>%
   group_by(site_name, site_no)
 
 
@@ -67,7 +66,7 @@ summarize(gage_data)
 # automate downloading climate data
 
 # write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
-
+# 
 # daymet_all <- download_daymet_batch(file_location = "./gage_ids.csv", start = year(start), end = year(end), internal = T, simplify = F)
 # saveRDS(daymet_all, "DAYMET_all.rdata")
 
@@ -98,7 +97,8 @@ gage_data_all <-
          t_avg_C,
          ann
   ) %>%
-  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
+  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date)) %>%
+  drop_na(t_min_C)
 
 # ADD FISH DATA
 
@@ -111,15 +111,15 @@ gage_fish_all <-
   lapply(read_csv) %>%
   bind_rows()%>%
   filter(data_type == "TSAEJ") %>%
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_Gage"), .before = "stock_number") %>%
-  select(abundance_qty,
-         year,
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% #this line is can break
+  select(abundance_qty,                                                                                     #if gage_ids changed. 
+         year,                                                                                              #maybe should be fixed...
          site_name) %>%
   left_join(gage_data_all,., by = c(
     "ann" = "year",
     "site_name" = "site_name"
-  )
-  )
+  )) %>%
+  drop_na(abundance_qty)
 
 # REVEL IN ITS GLORY. FISH SCRIPT REIGNS SUPREME
 
@@ -137,22 +137,13 @@ temp_v_returns <-
   geom_point() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scale = "free") + #Modify facet labels
   stat_smooth(method = "lm", se = F) +
-  stat_regline_equation(label.x.npc = "middle", label.y.npc = "top") +
-  stat_cor(label.x.npc = "left", label.y.npc = "top") +
+  stat_regline_equation(label.x.npc = "middle", label.y.npc = "top") + #add regression line
+  stat_cor(label.x.npc = "left", label.y.npc = "top") + #add p-val
   labs(y = "Salmon Returns" , x = "Avg Temperature (C)") +
   theme(legend.position = "none") #Hide legend
 
 
 ggsave("temp_v_returns.png", temp_v_returns, width = 10, height = 5, dpi = "retina")  
-  
-
-temp_fish <- read.csv("./Salmon_Data/Dungeness Salmon Data.csv")
-
-
-gage_fish_all %>%
-  ggplot(aes(x = Date, y = Flow)) +
-  geom_line() +
-  facet_wrap(~site_name, nrow = 3)
 
 
 gage_fish_all %>%
