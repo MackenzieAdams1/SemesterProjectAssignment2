@@ -191,15 +191,13 @@ Generate a histogram or density plot of at least one variable in your dataset. T
 
 ```{r}
 #This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales are set to free so that the patterns of returns for each river can be adequately analyzed.
-temp_1 <-
-  gage_fish_all %>%
-  reframe(abd_qty = mean(abundance_qty, na.rm = T), .by = ann)
 
 gage_fish_all %>%
-  summarise(abd_qty = mean(abundance_qty, na.rm = T), .by = ann, site_name) %>%
+  group_by(site_name, ann) %>%
+  reframe(abd_qty = Mode(abundance_qty)) %>%
   ggplot(aes(x = abd_qty, fill = site_name, group = ann)) +
   geom_histogram() +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") + 
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "fixed") + 
   labs(
     x = "Abundance Quantity",
     y = "Frequency",
@@ -212,7 +210,6 @@ gage_fish_all %>%
     legend.title = element_text(size = 14), 
     legend.text = element_text(size = 12),
     legend.position = "none")
-
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
