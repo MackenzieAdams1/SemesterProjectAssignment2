@@ -154,7 +154,7 @@ gage_fish_all <-
   lapply(read_csv) %>%
   bind_rows()%>%
   filter(data_type == "TSAEJ") %>%
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% # the format of this line makes it vulnerable to changes in the gage ids. Should probably be fixed but ehhhhhhhhhh......
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% 
   select(abundance_qty,
          year,
          site_name) %>%
@@ -181,35 +181,39 @@ q_gg <-
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
-        legend.position = "none",
-  )
+        legend.position = "none", )
+```
+
+
+```{r}
+#This code generates a plot with year on the x-axis and precipitation(mm) on the y-axis for the areas where the three streams of interest are located.
 
 prcp_gg <-
   gage_fish_all %>%
-  ggplot(aes(x = Date, y = prcp_daily_mm)) +
-  geom_line(color = "blue") + 
+  ggplot(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  geom_line() + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
   labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
-        legend.position = "none",
-  )
+        legend.position = "none",)
+```
 
+
+```{r}
+#This code places the two above graphs side by side so that trends between the three rivers can easily be examined.
 
 q_gg + prcp_gg
-
-
-
-
-
 
 ```
 
 ANSWER: 
 
-The plot we created shows year on the x axis and Discharge on the Y axis for the three rivers we are examining. This graph serves as an initial data exploration to examine patterns in discharge, potential flood events, and how much discharge is normal for each stream. There do not appear to be any significant gaps in our data set for the period we are examining (1987-2023). However, as seen in the Skokomish graph around 2010 the discharge dropped substantially and has remained this way ever since, with the discharge increasingly slightly in 2022 and 2023. Upon initial observation the dams on the Skokomish are not new, however, there was a lawsuit that occurred between the Skokomish Tribe and the State of Washington regarding discharge from the dams into the north fork of Skokomish which is located upstream of the gage we are using. Therefore, more research needs to be done to explore potential causes of this change. 
+The first plot we created shows year on the x axis and Discharge on the Y axis for the three rivers we are examining. This graph serves as an initial data exploration to examine patterns in discharge, potential flood events, and how much discharge is normal for each stream. There do not appear to be any significant gaps in our data set for the period we are examining (1987-2023). However, as seen in the Skokomish graph around 2010 the discharge dropped substantially and has remained this way ever since, with the discharge increasingly slightly in 2022 and 2023. The dams on the Skokomish are not new, however, there was a lawsuit that occurred between the Skokomish Tribe and the State of Washington regarding discharge from the dams into the north fork of Skokomish which is located upstream of the gage we are using. In 2010 the Skokomish Tribe won the lawsuit, therefore, more research needs to be done to explore the exact causes of this change. 
+
+The second plot we created shows year on the x axis and precipitation on the Y axis for the areas where our three streams of interest are located. This graph also serves as an initial data exploration to examine how precipitation patterns differ among our three sites of interest. Due to the locations of our sites around the Olympics which contribute to a significant rain shadow effect on parts of the Olympic Peninsula investigating these patterns and differences in precipitation is crucial for understanding the environmental conditions the salmon are encountering. There does not appear to be any significant gaps in this data set either for the time period we are examining, and there is data available for our entire period of interest. 
 
 
 Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
@@ -235,6 +239,27 @@ gage_fish_all %>%
     legend.title = element_text(size = 14), 
     legend.text = element_text(size = 12),
     legend.position = "none")
+
+gage_fish_all %>%
+  group_by(site_name, ann) %>%
+  reframe(abd_qty = Mode(abundance_qty)) %>%
+  ggplot(aes(x = abd_qty, fill = site_name, group = ann)) +
+  geom_histogram() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") + 
+  labs(
+    x = "Abundance Quantity",
+    y = "Frequency",
+    title = "Salmon Abundance Quantity by Site", 
+    fill = "Site") +
+  theme_minimal() +  
+  theme(strip.text = element_text(size = 12),  
+    axis.title.x = element_text(size = 14),  
+    axis.title.y = element_text(size = 14),  
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 12),
+    legend.position = "none", 
+    plot.margin = unit(c(.5, .5, .5, .5), "cm"))
+
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
