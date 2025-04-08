@@ -199,6 +199,7 @@ prcp_gg <-
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
         legend.position = "none",)
+
 ```
 
 
@@ -224,8 +225,8 @@ Generate a histogram or density plot of at least one variable in your dataset. T
 gage_fish_all %>%
   group_by(site_name, ann) %>%
   reframe(abd_qty = Mode(abundance_qty)) %>%
-  ggplot(aes(x = abd_qty, fill = site_name, group = ann)) +
-  geom_histogram() +
+  ggplot(aes(x = abd_qty, fill = site_name)) +
+  geom_histogram(bins = 100) +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "fixed") + 
   labs(
     x = "Abundance Quantity",
@@ -234,16 +235,16 @@ gage_fish_all %>%
     fill = "Site") +
   theme_minimal() +  
   theme(strip.text = element_text(size = 12),  
-    axis.title.x = element_text(size = 14),  
-    axis.title.y = element_text(size = 14),  
-    legend.title = element_text(size = 14), 
-    legend.text = element_text(size = 12),
-    legend.position = "none")
+        axis.title.x = element_text(size = 14),  
+        axis.title.y = element_text(size = 14),  
+        legend.title = element_text(size = 14), 
+        legend.text = element_text(size = 12),
+        legend.position = "none")
 
 gage_fish_all %>%
   group_by(site_name, ann) %>%
-  reframe(abd_qty = Mode(abundance_qty)) %>%
-  ggplot(aes(x = abd_qty, fill = site_name, group = ann)) +
+  reframe(abd_qty = Mode(abundance_qty))  %>%
+  ggplot(aes(x = abd_qty, fill = site_name)) +
   geom_histogram() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") + 
   labs(
@@ -253,12 +254,12 @@ gage_fish_all %>%
     fill = "Site") +
   theme_minimal() +  
   theme(strip.text = element_text(size = 12),  
-    axis.title.x = element_text(size = 14),  
-    axis.title.y = element_text(size = 14),  
-    legend.title = element_text(size = 14), 
-    legend.text = element_text(size = 12),
-    legend.position = "none", 
-    plot.margin = unit(c(.5, .5, .5, .5), "cm"))
+        axis.title.x = element_text(size = 14),  
+        axis.title.y = element_text(size = 14),  
+        legend.title = element_text(size = 14), 
+        legend.text = element_text(size = 12),
+        legend.position = "none", 
+        plot.margin = unit(c(.5, .5, .5, .5), "cm"))
 
 ```
 
