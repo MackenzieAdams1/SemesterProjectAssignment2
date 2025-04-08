@@ -38,10 +38,11 @@ library(tidyverse)
 library(dplyr)
 library(patchwork)
 library(zoo)
-library(daymetr)
-library(leaflet)
+library(daymetr) 
+library(leaflet) 
 library(fs)
-library(ggpubr)
+library(ggpubr) # for adding R and P vals to graphs
+library(DescTools) # for doing Mode statistical calc
 ```
 
 **Write a brief summary (3-4 sentences) describing your data.** 
@@ -74,7 +75,7 @@ para <-c("00060", "00065")
 
 # NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
 # saveRDS(NWIS_data, "NWIS_data.rdata")
-
+# 
 # NWIS_meta <- readNWISsite(gage_ids$site_no)
 # saveRDS(NWIS_meta, "NWIS_meta.rdata")
 
@@ -89,6 +90,7 @@ gage_data <-
   readRDS("NWIS_data.rdata") %>%
   inner_join(gage_ids, .) %>%
   renameNWISColumns() %>%
+  drop_na(Flow) %>%
   group_by(site_name, site_no)
 
 
@@ -134,7 +136,8 @@ gage_data_all <-
          t_avg_C,
          ann
   ) %>%
-  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date))
+  left_join(ungroup(gage_data), ., join_by(site_name == site, Date == Date)) %>%
+  drop_na(t_min_C)
 
 #Now the discharge, precipitation, and temperature data is all in one data frame.
 ```
@@ -151,29 +154,56 @@ gage_fish_all <-
   lapply(read_csv) %>%
   bind_rows()%>%
   filter(data_type == "TSAEJ") %>%
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>%
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% # the format of this line makes it vulnerable to changes in the gage ids. Should probably be fixed but ehhhhhhhhhh......
   select(abundance_qty,
          year,
          site_name) %>%
+  drop_na(abundance_qty) %>%
   left_join(gage_data_all,., by = c(
     "ann" = "year",
     "site_name" = "site_name"
   )
   )
+
 ```
 
 
 ```{r}
 #This code produces a figure that shows years on the x axis and discharge on the y-axis for the three rivers of interest. The Dungeness River produces substantially less discharge compared to the Elwha and the Skokomish, therefore we set the boundaries for all three to be "free" so that patterns in discharge can more easily be examined and the data fills up the whole graph area.
 
-gage_fish_all %>%
+q_gg <-
+  gage_fish_all %>%
   ggplot(aes(x = Date, y = Flow, color = site_name)) +
   geom_line() + 
   theme_minimal() +
-  facet_wrap(~ site_name, nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") + 
-  theme(strip.text = element_text(size = 12), axis.title.x = element_text(size = 14), 
-  axis.title.y = element_text(size = 14), legend.title = element_text(size = 12))
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",
+  )
+
+prcp_gg <-
+  gage_fish_all %>%
+  ggplot(aes(x = Date, y = prcp_daily_mm)) +
+  geom_line(color = "blue") + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",
+  )
+
+
+q_gg + prcp_gg
+
+
+
+
+
 
 ```
 
@@ -188,21 +218,23 @@ Generate a histogram or density plot of at least one variable in your dataset. T
 #This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales are set to free so that the patterns of returns for each river can be adequately analyzed.
 
 gage_fish_all %>%
-  ggplot(aes(x = abundance_qty, fill = site_name)) +
+  group_by(site_name, ann) %>%
+  reframe(abd_qty = Mode(abundance_qty)) %>%
+  ggplot(aes(x = abd_qty, fill = site_name, group = ann)) +
   geom_histogram() +
-  facet_wrap(~site_name, nrow = 3, scale = "free") + 
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "fixed") + 
   labs(
     x = "Abundance Quantity",
     y = "Frequency",
     title = "Abundance Quantity by Site", 
     fill = "Site") +
   theme_minimal() +  
-  theme( strip.text = element_text(size = 12),  
+  theme(strip.text = element_text(size = 12),  
     axis.title.x = element_text(size = 14),  
     axis.title.y = element_text(size = 14),  
     legend.title = element_text(size = 14), 
-    legend.text = element_text(size = 12))
-
+    legend.text = element_text(size = 12),
+    legend.position = "none")
 ```
 
 **What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
