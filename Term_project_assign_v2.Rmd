@@ -2,6 +2,8 @@
 output: html_document
 editor_options: 
   chunk_output_type: console
+  
+Mackenzie Adams and Henry Scott
 ---
 ## Term Project Assignment 2 - 10 pnts
 
