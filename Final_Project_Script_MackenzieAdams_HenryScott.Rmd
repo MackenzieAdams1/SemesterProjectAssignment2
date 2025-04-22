@@ -22,6 +22,7 @@ library(leaflet)
 library(fs)
 library(ggpubr) # for adding R and P vals to graphs
 library(DescTools) # for doing Mode statistical calc
+library(rstatix)
 ```
 
 ```{r}
@@ -37,7 +38,7 @@ gage_ids <-
     "Skokomish_River",  "12061500")
 
 # set all the parameters
-start <- date("1987-10-01")
+start <- date("1982-10-01")
 end <- date("2023-9-30")
 para <-c("00060", "00065")
 
@@ -75,7 +76,7 @@ summarize(gage_data)
 # WEATHER DATA ACQUISITION: This code retrieves the desired precipitation and temperature data.
 
 # write_csv(x = select(gage_ids, -"site_no"), file = "gage_ids.csv")
-
+# 
 # daymet_all <- download_daymet_batch(file_location = "./gage_ids.csv", start = year(start), end = year(end), internal = T, simplify = F)
 # saveRDS(daymet_all, "DAYMET_all.rdata")
 
@@ -134,6 +135,12 @@ gage_fish_all <-
     "site_name" = "site_name"
   )
   )
+
+# Make an offset df so that returns line up with the climate year they spawned in
+gage_fish_lead <-
+  gage_fish_all %>%
+  group_by(site_name) %>% 
+  mutate(abundance_lead = lead(abundance_qty, 365*4))
 
 ```
 
@@ -230,5 +237,73 @@ gage_fish_all %>%
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 data_slice <- read.csv("./all_data_preview.csv")
+```
+
+
+
+
+```{r}
+
+gage_fish_lead %>%
+  group_by(site_name, ann) %>%
+  reframe(abd_qty_lead = Mode(abundance_lead), Flow = mean(Flow))  %>%
+  ggplot(aes(x = abd_qty_lead, y = Flow, color = site_name)) +
+  geom_point() +
+  geom_smooth()
+
+
+fish_aov <- gage_fish_lead %>% 
+  anova_test(abundance_lead ~ Flow*prcp_daily_mm*t_avg_C)
+
+
+
+gage_fish_lead %>%
+  ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
+  geom_point() 
+
+model_aov <- 
+  gage_fish_lead %>%
+  aov(abundance_lead ~ Flow*prcp_daily_mm*t_avg_C)
+
+summary(model_aov)
+
+
+
+```
+
+```{r}
+
+# Creating a chart with annual return as a single point while still keeping annual data for everything   else
+
+annual_salmon_returns <-
+  gage_fish_lead %>%
+  group_by(site_name, ann) %>%
+  reframe(
+    abundance_lead = Mode(abundance_lead), 
+    ann = make_date(
+      year = Mode(ann), 
+      month = 1, 
+      day = 1
+    )
+  )
+  
+
+good_plot <-
+  gage_fish_lead %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line() +
+  facet_wrap(facets = "site_name", 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_lead), 
+             color = "black", 
+             size = .75) 
+
+ggsave("annual_salmon_returns.png", dpi = 300, width = 8, height = 6)
+  
+
+
 ```
 
