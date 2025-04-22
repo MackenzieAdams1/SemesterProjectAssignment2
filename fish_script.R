@@ -32,7 +32,6 @@ gage_ids <-
 start <- date("1987-10-01")
 end <- date("2023-9-30")
 para <- c("00060", "00065")
-county <- 
 
 # if sites in gage_ids are changed, uncomment the code below and run it once. This stores the 
 # data locally and eventually in the repo if its pushed. This is mostly to be polite to the  
