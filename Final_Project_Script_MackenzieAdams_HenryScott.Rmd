@@ -5,29 +5,6 @@ chunk_output_type: console
 ---
 Mackenzie Adams and Henry Scott
 
-## Term Project Assignment 2 - 10 pnts
-
-In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
-
-### Brainstorming
-
-**Q1. What is the primary research question/objective for your term project? (1-2 sentences)(1 pt)** <br>
-
-ANSWER: How has variability in stream discharge, precipitation, and air temperature impacted salmon returns in Western Washington.
-
-**Q2. What are 2-3 types of data your research question requires? Address each sub-question (2 pts)**
-ANSWER:
-1) For this project the variables and indicators we are looking for is salmon return data (specifically from streams with USGS gages), stream discharge data, precipitation data, and air temperature data.
-
-2) The data should all be in the form of time-series data, however, we will likely use the map function previously used in labs to display where the stream gages we are using are located. 
-
-3) The salmon return data will be survey type data from the stateofsalmon.wa.gov website. The stream discharge data will come from three different USGS gages. The precipitation and air temperature data will come from daymet data.
-
-4) As salmon have a 3-5 year life cycle depending on the species a longer temporal length would be best, ideally spanning 20+ years so that patterns across multiple generations can be examined. The resolution of the data will depend on the variable. Salmon return data are reported as annual totals, so this data will be represented as a single value each year. However, using daily data for stream flow, precipitation, and air temperature would allow for examination of annual patterns and help to determine if there is a correlation between changes in these factors and salmon returns. Therefore the temporal length for these three variables will be on a daily basis. 
-
-### Data exploration and selection
-
-**Q3. Explore your data, this part requires 2 answers (3 pnts total)**
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -46,15 +23,6 @@ library(fs)
 library(ggpubr) # for adding R and P vals to graphs
 library(DescTools) # for doing Mode statistical calc
 ```
-
-**Write a brief summary (3-4 sentences) describing your data.** 
-
-Answer: For our project we are using four different types of data, salmon return data, stream discharge, precipitation, and air temperature. The salmon return data is from the stateofsalmon.wa.org website and is reported as one value each year of the total number of wild and hatchery fish that returned to a given river each year. The stream discharge data comes from three USGS gauges and we are looking at daily data from 1987-2023. The precipitation and air temperature data were retrieved from daymet and is unique for all three of the sites.
-
-Generate plots:
-Create at least one plot that summarizes the data and describe it's use to you. Are there gaps in the data? Does the data cover the time or space you are interested in? Are there significant outliers that need consideration? 
-
-ANSWER BELOW PLOT
 
 ```{r}
 # USGS GAGE INFO/DATA 
@@ -212,14 +180,6 @@ q_gg + prcp_gg
 
 ```
 
-ANSWER: 
-
-The first plot we created shows year on the x axis and Discharge on the Y axis for the three rivers we are examining. This graph serves as an initial data exploration to examine patterns in discharge, potential flood events, and how much discharge is normal for each stream. There do not appear to be any significant gaps in our data set for the period we are examining (1987-2023). However, as seen in the Skokomish graph around 2010 the discharge dropped substantially and has remained this way ever since, with the discharge increasingly slightly in 2022 and 2023. The dams on the Skokomish are not new, however, there was a lawsuit that occurred between the Skokomish Tribe and the State of Washington regarding discharge from the dams into the north fork of Skokomish which is located upstream of the gage we are using. In 2010 the Skokomish Tribe won the lawsuit, therefore, more research needs to be done to explore the exact causes of this change. 
-
-The second plot we created shows year on the x axis and precipitation on the Y axis for the areas where our three streams of interest are located. This graph also serves as an initial data exploration to examine how precipitation patterns differ among our three sites of interest. Due to the locations of our sites around the Olympics which contribute to a significant rain shadow effect on parts of the Olympic Peninsula investigating these patterns and differences in precipitation is crucial for understanding the environmental conditions the salmon are encountering. There does not appear to be any significant gaps in this data set either for the time period we are examining, and there is data available for our entire period of interest. 
-
-
-Generate a histogram or density plot of at least one variable in your dataset. The script here will help start a density plot showing multiple variables. You may adapt or change this as needed. 
 
 ```{r}
 #This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales in the first chunk of code is fixed so that direct comparisons between the three rivers is easier. The scales in the second chunk of code are set to free so that the patterns of returns for each river can be more easily analyzed.
@@ -265,27 +225,10 @@ gage_fish_all %>%
 
 ```
 
-**What does the above plot tell you about the distribution of your data? Is it as expected? Why do we need to consider the distribution of data when deciding on analysis methods?**
-
-ANSWER:
-The above plot tells us that annual salmon returns on the Dungeness River typically fall within 20-1,000 salmon, whereas annual returns on the Elwha and the Skokomish typically fall within 0-3,000 salmon. This data is as expected as a majority of salmon returns fall into the above defined parameters with some other larger runs occurring in all three rivers across the time of the data set. We need to consider the distribution of data when deciding on an analysis method as some methods assume a specific distribution is present in the data and if the data does not meet these assumptions the results that are produced may be misleading. Therefore, by assessing the distribution educated decisions can be made regarding what types of analysis methods would be the most appropriate. 
-
-**Q4. Putting it all together (3 pts)**
-Create a table in R and export it as a .csv file to submit with this assignment .rmd.
-
-In this table, include all datasets (up to now) that you will use for your term project. The script below specifies all of the sections required in this table, though you will need to change names and information accordingly in c(). Also, not everything in this table may pertain to you and your project. So we can change things accordingly. 
 
 ```{r, message=FALSE}
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 data_slice <- read.csv("./all_data_preview.csv")
 ```
-
-Once this is exported, you can format if desired for readibility and submit the .csv with a completed .rmd. 
-
-**Q5. What is your updated term project question/objective? How, specifically, will the data sources listed above help you to answer that question? (1 pt)**
-
-How have fluctuations in stream discharge, precipitation, and air temperature influenced the survivability and return rates of Chinook salmon in Western Washington from 1987 to 2023? 
-
-The data sources above will help to answer our question by providing additional insights into potential variables impacting salmon runs. Precipitation and stream discharge values will help us to analyze the flow conditions that salmon populations were experiencing during the juvenile stage and track the correlating impacts on salmon return numbers. Additionally, air temperature will help us to better understand stream conditions that the salmon were experiencing within a given season and tie these values to potentially high stream temperatures that negatively impact juvenile salmon survivability. These climatological trends can then be analyzed to determine how conditions that salmon experience during the juvenile stage impact the salmon return numbers three to five years later by looking at patterns in the salmon abundance data set and comparing those with trends found in the climatological data.
 
