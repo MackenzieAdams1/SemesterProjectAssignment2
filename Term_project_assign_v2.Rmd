@@ -1,10 +1,10 @@
 ---
 output: html_document
 editor_options: 
-  chunk_output_type: console
-  
-Mackenzie Adams and Henry Scott
+chunk_output_type: console
 ---
+Mackenzie Adams and Henry Scott
+
 ## Term Project Assignment 2 - 10 pnts
 
 In this assignment you will develop the main goal and objectives of your term project and explore, evaluate, and select data sources. A key component of this process is formulating a research question or develop a workflow. The workflow for this assignment will help you refine your question and identify the datasets needed to address it. 
