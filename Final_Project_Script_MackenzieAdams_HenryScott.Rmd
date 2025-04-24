@@ -7,6 +7,7 @@ Mackenzie Adams and Henry Scott
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
 Install and load needed packages
