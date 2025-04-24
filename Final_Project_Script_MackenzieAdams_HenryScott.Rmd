@@ -300,8 +300,6 @@ good_plot <-
              color = "black", 
              size = .75) 
 
-ggsave("annual_salmon_returns.png", dpi = 300, width = 8, height = 6)
-  
 
 ```
 
