@@ -301,7 +301,6 @@ good_plot <-
 ggsave("annual_salmon_returns.png", dpi = 300, width = 8, height = 6)
   
 
-
 ```
 
 ```{r}
