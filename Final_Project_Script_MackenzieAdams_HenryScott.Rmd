@@ -140,7 +140,11 @@ gage_fish_all <-
 gage_fish_lead <-
   gage_fish_all %>%
   group_by(site_name) %>% 
-  mutate(abundance_lead = lead(abundance_qty, 365*4))
+  mutate(abundance_lead = lead(abundance_qty, 365*4),
+         Date_lead = Date + years(4),
+         ann_lead = year(Date_lead))
+
+
 
 ```
 
@@ -233,6 +237,7 @@ gage_fish_all %>%
 ```
 
 ```{r, message=FALSE}
+#create a data slice
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 data_slice <- read.csv("./all_data_preview.csv")
@@ -240,6 +245,7 @@ data_slice <- read.csv("./all_data_preview.csv")
 
 
 ```{r}
+# lead the data so climate matches with returns, and some basic stats
 
 gage_fish_lead %>%
   group_by(site_name, ann) %>%
@@ -258,13 +264,6 @@ gage_fish_lead %>%
   ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
   geom_point() 
 
-model_aov <- 
-  gage_fish_lead %>%
-  aov(abundance_lead ~ Flow*prcp_daily_mm*t_avg_C)
-
-summary(model_aov)
-
-
 
 ```
 
@@ -278,16 +277,17 @@ annual_salmon_returns <-
   reframe(
     abundance_lead = Mode(abundance_lead), 
     ann = make_date(
-      year = Mode(ann), 
+      year = Mode(ann_lead), 
       month = 1, 
       day = 1
     )
   )
   
 
+
 good_plot <-
   gage_fish_lead %>%
-  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
   geom_line() +
   facet_wrap(facets = "site_name", 
              nrow = 3, 
@@ -321,6 +321,12 @@ labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
 
 
 ```
+
+
+```{r}
+gage_fish_lead %>%
+  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
+  geom_line() 
 ```
 
 
