@@ -1,6 +1,7 @@
 ---
 output: html_document
 editor_options: 
+  chunk_output_type: console
 chunk_output_type: console
 ---
 Mackenzie Adams and Henry Scott
@@ -253,7 +254,7 @@ gage_fish_lead %>%
   reframe(abd_qty_lead = Mode(abundance_lead), Flow = mean(Flow))  %>%
   ggplot(aes(x = abd_qty_lead, y = Flow, color = site_name)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth(method = "lm")
 
 
 fish_aov <- gage_fish_lead %>% 
@@ -276,18 +277,19 @@ annual_salmon_returns <-
   gage_fish_lead %>%
   group_by(site_name, ann) %>%
   reframe(
-    abundance_lead = Mode(abundance_lead), 
+    abundance_lead = Mode(abundance_lead, na.rm = TRUE), 
     ann = make_date(
       year = Mode(ann_lead), 
-      month = 1, 
-      day = 1
-    )
+      month = 10, 
+      day = 1),
+    high_flow = max(Flow)
   )
-  
+
 
 
 good_plot <-
   gage_fish_lead %>%
+  filter(Date < "2023-10-01") %>%
   ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
   geom_line() +
   facet_wrap(facets = "site_name", 
@@ -320,8 +322,40 @@ labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
  facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
+```
+
+
+```{r}
+gage_fish_lead %>%
+  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
+  geom_line() 
+```
+
+
+```{r}
+# Quickie model
+
+t_mod <- 
+  lm(formula = abundance_lead ~ , 
+     data = annual_salmon_returns)
+
+summary(t_mod)$coefficient
+
+gage_fish_lead %>%
+  # group_by(site_name, ann) %>%
+  ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
+  geom_point()
 
 ```
 
+```{r}
+# preliminary example of data surrounding a high returns year
+
+gage_fish_lead %>%
+  filter(site_name == "Dungeness_River", Date_lead >= "2006-08-01" & Date_lead <= "2007-06-01") %>%
+  ggplot(aes(x = Date_lead, y = Flow)) +
+  geom_line(color = "blue")
+  
+```
 
 
