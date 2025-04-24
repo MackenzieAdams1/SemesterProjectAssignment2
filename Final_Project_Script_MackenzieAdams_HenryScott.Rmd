@@ -319,6 +319,7 @@ labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
  facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
+
 ```
 
 
