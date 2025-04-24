@@ -332,7 +332,7 @@ gage_fish_lead %>%
 
 
 ```{r}
-# Quickie m0del
+# Quickie model
 
 t_mod <- 
   lm(formula = abundance_lead ~ , 
