@@ -322,11 +322,4 @@ labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
 ```
 
 
-```{r}
-gage_fish_lead %>%
-  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
-  geom_line() 
-```
-
-
 
