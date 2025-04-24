@@ -232,14 +232,11 @@ gage_fish_all %>%
 
 ```
 
-
 ```{r, message=FALSE}
 write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
 
 data_slice <- read.csv("./all_data_preview.csv")
 ```
-
-
 
 
 ```{r}
@@ -306,4 +303,25 @@ ggsave("annual_salmon_returns.png", dpi = 300, width = 8, height = 6)
 
 
 ```
+
+```{r}
+#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore returns are all shifted up by four years.
+
+annual_salmon_returns_line <- annual_salmon_returns %>%
+  ggplot(aes (x = ann, y = abundance_lead, color = site_name)) + geom_line() + geom_point() +labs( title = "Salmon Abundance Over the Years")
+
+
+annual_salmon_returns_line <- annual_salmon_returns %>%
+ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
+geom_line() +
+geom_point() +
+labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
+ theme_minimal() +
+ facet_wrap(~ site_name, ncol = 1)
+
+
+```
+```
+
+
 
