@@ -280,10 +280,10 @@ annual_salmon_returns <-
     ann = make_date(
       year = Mode(ann_lead), 
       month = 10, 
-      day = 1
-    )
+      day = 1),
+    high_flow = max(Flow)
   )
-  
+
 
 
 good_plot <-
@@ -332,11 +332,11 @@ gage_fish_lead %>%
 
 
 ```{r}
-# Quickie mdel
+# Quickie m0del
 
 t_mod <- 
-  lm(formula = abundance_lead ~ prcp_daily_mm + t_avg_C + Flow, 
-     data = gage_fish_lead)
+  lm(formula = abundance_lead ~ , 
+     data = annual_salmon_returns)
 
 summary(t_mod)$coefficient
 
@@ -347,5 +347,14 @@ gage_fish_lead %>%
 
 ```
 
+```{r}
+# preliminary example of data surrounding a high returns year
+
+gage_fish_lead %>%
+  filter(site_name == "Dungeness_River", Date_lead >= "2006-08-01" & Date_lead <= "2007-06-01") %>%
+  ggplot(aes(x = Date_lead, y = Flow)) +
+  geom_line(color = "blue")
+  
+```
 
 
