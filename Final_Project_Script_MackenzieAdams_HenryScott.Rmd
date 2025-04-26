@@ -187,10 +187,32 @@ prcp_gg <-
 
 
 ```{r}
-#This code places the two above graphs side by side so that trends between the three rivers can easily be examined.
+#This code generates a plot with year on the x-axis and average temperature(C) on the y-axis for the areas where the three streams of interest are located.
 
-q_gg + prcp_gg
+temp_gg <-
+  gage_fish_all %>%
+  ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+```
 
+
+```{r}
+#This code places the three above graphs side by side so that trends between the three rivers can easily be examined.
+
+q_gg + prcp_gg + temp_gg
+
+q_gg +prcp_gg 
+
+prcp_gg + temp_gg
+
+q_gg + temp_gg
 ```
 
 
