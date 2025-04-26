@@ -305,19 +305,38 @@ good_plot <-
 ```
 
 ```{r}
-#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore returns are all shifted up by four years.
-
-annual_salmon_returns_line <- annual_salmon_returns %>%
-  ggplot(aes (x = ann, y = abundance_lead, color = site_name)) + geom_line() + geom_point() +labs( title = "Salmon Abundance Over the Years")
+#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore climate data is all shifted up backwards by four years.
 
 
-annual_salmon_returns_line <- annual_salmon_returns %>%
+annual_salmon_returns <- annual_salmon_returns %>%
+mutate(site_name = recode(site_name,
+"Elwha_River" = "Elwha River",
+"Dungeness_River" = "Dungeness River",
+"Skokomish_River" = "Skokomish River"))
+
+
+annual_salmon_returns %>%
+ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
+geom_line() +
+geom_point() + 
+theme_classic() +
+labs(
+title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year")
+
+
+annual_salmon_returns %>%
 ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
 geom_line() +
 geom_point() +
-labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
- theme_minimal() +
- facet_wrap(~ site_name, scales = "free_y", ncol = 1)
+theme_classic() +
+labs(title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") +
+facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
 ```
