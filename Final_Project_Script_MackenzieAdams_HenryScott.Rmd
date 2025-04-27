@@ -46,11 +46,11 @@ para <-c("00060", "00065")
 
 # if sites in gage_ids are changed, uncomment the code below and run it once. This stores the data locally and eventually in the repo if its pushed. This is mostly to be polite to the USGS hosting service.
 
-# NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
-# saveRDS(NWIS_data, "NWIS_data.rdata")
+#NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
+ #saveRDS(NWIS_data, "NWIS_data.rdata")
 # 
-# NWIS_meta <- readNWISsite(gage_ids$site_no)
-# saveRDS(NWIS_meta, "NWIS_meta.rdata")
+ #NWIS_meta <- readNWISsite(gage_ids$site_no)
+ #saveRDS(NWIS_meta, "NWIS_meta.rdata")
 
 gage_ids <- 
   readRDS("NWIS_meta.rdata") %>% 
@@ -145,8 +145,30 @@ gage_fish_lead <-
   mutate(abundance_lead = lead(abundance_qty, 365*4),
          Date_lead = Date + years(4),
          ann_lead = year(Date_lead))
+```
 
 
+```{r}
+#Mackenzie's attempt to correctly offset the data: this is closer than what we have but still not quite right
+
+gage_fish_lead_2 <- gage_fish_all %>%
+  mutate(Date = as.Date(Date))
+  
+
+env_data <- gage_fish_all %>%
+ filter(year(Date) >= 1982 & year(Date) <= 2023) %>%
+ select(site_name, Date, prcp_daily_mm, Flow, t_max_C, t_min_C, t_avg_C)
+
+env_data <- env_data %>% 
+  mutate(Date = Date + years (4))
+
+abundance_data <- gage_fish_all %>%
+ filter(year(Date) >= 1986 & year(Date) <= 2023) %>%
+ select(site_name, Date, abundance_qty)
+
+
+aligned_data <- abundance_data %>%
+ left_join(env_data, by = c("site_name", "Date")) 
 
 ```
 
@@ -215,59 +237,6 @@ prcp_gg + temp_gg
 q_gg + temp_gg
 ```
 
-
-```{r}
-#This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales in the first chunk of code is fixed so that direct comparisons between the three rivers is easier. The scales in the second chunk of code are set to free so that the patterns of returns for each river can be more easily analyzed.
-
-gage_fish_all %>%
-  group_by(site_name, ann) %>%
-  reframe(abd_qty = Mode(abundance_qty)) %>%
-  ggplot(aes(x = abd_qty, fill = site_name)) +
-  geom_histogram(bins = 100) +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "fixed") + 
-  labs(
-    x = "Abundance Quantity",
-    y = "Frequency",
-    title = "Abundance Quantity by Site", 
-    fill = "Site") +
-  theme_minimal() +  
-  theme(strip.text = element_text(size = 12),  
-        axis.title.x = element_text(size = 14),  
-        axis.title.y = element_text(size = 14),  
-        legend.title = element_text(size = 14), 
-        legend.text = element_text(size = 12),
-        legend.position = "none")
-
-gage_fish_all %>%
-  group_by(site_name, ann) %>%
-  reframe(abd_qty = Mode(abundance_qty))  %>%
-  ggplot(aes(x = abd_qty, fill = site_name)) +
-  geom_histogram(bins = 75) +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") + 
-  labs(
-    x = "Abundance Quantity",
-    y = "Frequency",
-    title = "Salmon Abundance Quantity by Site", 
-    fill = "Site") +
-  theme_minimal() +  
-  theme(strip.text = element_text(size = 12),  
-        axis.title.x = element_text(size = 14),  
-        axis.title.y = element_text(size = 14),  
-        legend.title = element_text(size = 14), 
-        legend.text = element_text(size = 12),
-        legend.position = "none", 
-        plot.margin = unit(c(.5, .5, .5, .5), "cm"))
-
-```
-
-```{r, message=FALSE}
-#create a data slice
-write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
-
-data_slice <- read.csv("./all_data_preview.csv")
-```
-
-
 ```{r}
 # lead the data so climate matches with returns, and some basic stats
 
@@ -286,7 +255,8 @@ fish_aov <- gage_fish_lead %>%
 
 gage_fish_lead %>%
   ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
-  geom_point() 
+  geom_line() + geom_point()
+
 
 
 ```
@@ -308,8 +278,7 @@ annual_salmon_returns <-
   )
 
 
-
-good_plot <-
+DischargeandReturns <-
   gage_fish_lead %>%
   filter(Date < "2023-10-01") %>%
   ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
@@ -325,6 +294,13 @@ good_plot <-
 
 
 ```
+
+```{r}
+
+
+```
+
+
 
 ```{r}
 #Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore climate data is all shifted up backwards by four years.
