@@ -325,11 +325,6 @@ DischargeandReturns <-
 
 ```
 
-```{r}
-
-
-```
-
 
 
 ```{r}
@@ -343,6 +338,7 @@ mutate(site_name = recode(site_name,
 "Skokomish_River" = "Skokomish River"))
 
 
+#Returns over time of all three rivers on one graph.
 annual_salmon_returns %>%
 ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
 geom_line() +
@@ -354,7 +350,7 @@ color = "Site",
 y = "Salmon Return Abundance",
 x = "Year")
 
-
+#Returns in each seperate river on seperate graphs stacked together.
 annual_salmon_returns %>%
 ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
 geom_line() +
@@ -368,6 +364,17 @@ facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
 ```
+
+```{r}
+
+
+
+```
+
+
+
+
+
 
 
 ```{r}
