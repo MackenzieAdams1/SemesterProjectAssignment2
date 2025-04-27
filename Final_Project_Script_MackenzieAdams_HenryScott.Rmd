@@ -325,8 +325,66 @@ DischargeandReturns <-
              color = "black", 
              size = .75) 
 
+```
+
+```{r}
+#Above code using new data frame to make it more accurate
+
+# Calculate the average and std dev of returns for each stream
+
+abundance_stats_2 <- 
+  aligned_data %>%
+  ungroup() %>%
+  summarise(return_avg = round(mean(abundance_qty, na.rm = T)), 
+            return_sd = round(sd(abundance_qty, na.rm = T)), 
+            .by = site_name)
+
+
+# Creating a chart with annual return as a single point while still keeping annual data for everything   else
+
+annual_salmon_returns_2 <-
+  aligned_data %>%
+  group_by(site_name, waterYear) %>%
+  reframe(
+    abundance_qty = Mode(abundance_qty, na.rm = TRUE), 
+    ann = make_date(
+      year = Mode(waterYear), 
+      month = 10, 
+      day = 1),
+    high_flow = max(Flow)
+  ) %>% 
+  left_join(abundance_stats_2, by = "site_name") %>%
+  mutate(outlier = (abundance_qty > return_avg + return_sd | abundance_qty < return_avg - return_sd)) # checks if a given year is outside of 1 sd
+
+
+#Creates a chart using the new data set with two y axis, legend, colors, etc. 
+
+DischargeandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = Flow, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Flow (cfs)", sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
 
 ```
+
+
+
 
 
 ```{r}
