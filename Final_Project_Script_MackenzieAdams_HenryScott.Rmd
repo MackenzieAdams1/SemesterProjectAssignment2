@@ -46,11 +46,11 @@ para <-c("00060", "00065")
 
 # if sites in gage_ids are changed, uncomment the code below and run it once. This stores the data locally and eventually in the repo if its pushed. This is mostly to be polite to the USGS hosting service.
 
-#NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
- #saveRDS(NWIS_data, "NWIS_data.rdata")
+# NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
+# saveRDS(NWIS_data, "NWIS_data.rdata")
 # 
- #NWIS_meta <- readNWISsite(gage_ids$site_no)
- #saveRDS(NWIS_meta, "NWIS_meta.rdata")
+# NWIS_meta <- readNWISsite(gage_ids$site_no)
+# saveRDS(NWIS_meta, "NWIS_meta.rdata")
 
 gage_ids <- 
   readRDS("NWIS_meta.rdata") %>% 
@@ -64,6 +64,7 @@ gage_data <-
   inner_join(gage_ids, .) %>%
   renameNWISColumns() %>%
   drop_na(Flow) %>%
+  mutate(water_year = calcWaterYear(Date))
   group_by(site_name, site_no)
 
 
@@ -122,10 +123,23 @@ gage_data_all <-
 fish_files <-
   dir_ls("./Salmon_Data/")
 
+
+# creats a df of fish data. Originally, the code 1 chunk below this did this within its own workflow but I made it a seperate df bc i need it somewhere else, not attached to climate data
+fish_data <-
+  fish_files %>%
+  lapply(read_csv) %>%
+  bind_rows() %>%
+  filter(data_type == "TSAEJ") %>%
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% 
+  select(abundance_qty,
+         year,
+         site_name) %>%
+  drop_na(abundance_qty)
+
 gage_fish_all <-
   fish_files %>%
   lapply(read_csv) %>%
-  bind_rows()%>%
+  bind_rows() %>%
   filter(data_type == "TSAEJ") %>%
   mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% 
   select(abundance_qty,
@@ -133,7 +147,7 @@ gage_fish_all <-
          site_name) %>%
   drop_na(abundance_qty) %>%
   left_join(gage_data_all,., by = c(
-    "ann" = "year",
+    "water_year" = "year",
     "site_name" = "site_name"
   )
   )
@@ -144,7 +158,8 @@ gage_fish_lead <-
   group_by(site_name) %>% 
   mutate(abundance_lead = lead(abundance_qty, 365*4),
          Date_lead = Date + years(4),
-         ann_lead = year(Date_lead))
+         ann_lead = year(Date_lead)
+         )
 ```
 
 
@@ -162,13 +177,18 @@ env_data <- gage_fish_all %>%
 env_data <- env_data %>% 
   mutate(Date = Date + years (4))
 
-abundance_data <- gage_fish_all %>%
- filter(year(Date) >= 1986 & year(Date) <= 2023) %>%
- select(site_name, Date, abundance_qty)
+abundance_data <- gage_data_all %>%
+  filter(year(Date) >= 1986 & year(Date) <= 2023) %>%
+  select(site_name, Date) 
 
 
-aligned_data <- abundance_data %>%
- left_join(env_data, by = c("site_name", "Date")) 
+aligned_data <- 
+  abundance_data %>%
+  left_join(env_data, by = c("site_name", "Date")) %>%
+  addWaterYear() %>%
+  left_join(., fish_data, by = c(
+    "site_name" = "site_name",
+    "waterYear" = "year"))
 
 ```
 
@@ -256,8 +276,6 @@ fish_aov <- gage_fish_lead %>%
 gage_fish_lead %>%
   ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
   geom_line() + geom_point()
-
-
 
 ```
 
@@ -513,10 +531,6 @@ piss <-
 where_fucked(piss)
 
 where_fucked(gage_fish_lead)
-
-
-
-
 
 
 
