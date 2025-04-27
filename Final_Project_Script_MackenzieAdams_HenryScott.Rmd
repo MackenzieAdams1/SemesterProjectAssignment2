@@ -8,6 +8,7 @@ Mackenzie Adams and Henry Scott
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
 Install and load needed packages
@@ -45,11 +46,11 @@ para <-c("00060", "00065")
 
 # if sites in gage_ids are changed, uncomment the code below and run it once. This stores the data locally and eventually in the repo if its pushed. This is mostly to be polite to the USGS hosting service.
 
-# NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
-# saveRDS(NWIS_data, "NWIS_data.rdata")
+#NWIS_data <- readNWISdv(gage_ids$site_no, para, start, end)
+ #saveRDS(NWIS_data, "NWIS_data.rdata")
 # 
-# NWIS_meta <- readNWISsite(gage_ids$site_no)
-# saveRDS(NWIS_meta, "NWIS_meta.rdata")
+ #NWIS_meta <- readNWISsite(gage_ids$site_no)
+ #saveRDS(NWIS_meta, "NWIS_meta.rdata")
 
 gage_ids <- 
   readRDS("NWIS_meta.rdata") %>% 
@@ -144,8 +145,30 @@ gage_fish_lead <-
   mutate(abundance_lead = lead(abundance_qty, 365*4),
          Date_lead = Date + years(4),
          ann_lead = year(Date_lead))
+```
 
 
+```{r}
+#Mackenzie's attempt to correctly offset the data: this is closer than what we have but still not quite right
+
+gage_fish_lead_2 <- gage_fish_all %>%
+  mutate(Date = as.Date(Date))
+  
+
+env_data <- gage_fish_all %>%
+ filter(year(Date) >= 1982 & year(Date) <= 2023) %>%
+ select(site_name, Date, prcp_daily_mm, Flow, t_max_C, t_min_C, t_avg_C)
+
+env_data <- env_data %>% 
+  mutate(Date = Date + years (4))
+
+abundance_data <- gage_fish_all %>%
+ filter(year(Date) >= 1986 & year(Date) <= 2023) %>%
+ select(site_name, Date, abundance_qty)
+
+
+aligned_data <- abundance_data %>%
+ left_join(env_data, by = c("site_name", "Date")) 
 
 ```
 
@@ -186,64 +209,33 @@ prcp_gg <-
 
 
 ```{r}
-#This code places the two above graphs side by side so that trends between the three rivers can easily be examined.
+#This code generates a plot with year on the x-axis and average temperature(C) on the y-axis for the areas where the three streams of interest are located.
 
-q_gg + prcp_gg
-
+temp_gg <-
+  gage_fish_all %>%
+  ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
 ```
 
 
 ```{r}
-#This histogram shows the frequency of different salmon return abundances for each of the three rivers we are analyzing. The scales in the first chunk of code is fixed so that direct comparisons between the three rivers is easier. The scales in the second chunk of code are set to free so that the patterns of returns for each river can be more easily analyzed.
+#This code places the three above graphs side by side so that trends between the three rivers can easily be examined.
 
-gage_fish_all %>%
-  group_by(site_name, ann) %>%
-  reframe(abd_qty = Mode(abundance_qty)) %>%
-  ggplot(aes(x = abd_qty, fill = site_name)) +
-  geom_histogram(bins = 100) +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "fixed") + 
-  labs(
-    x = "Abundance Quantity",
-    y = "Frequency",
-    title = "Abundance Quantity by Site", 
-    fill = "Site") +
-  theme_minimal() +  
-  theme(strip.text = element_text(size = 12),  
-        axis.title.x = element_text(size = 14),  
-        axis.title.y = element_text(size = 14),  
-        legend.title = element_text(size = 14), 
-        legend.text = element_text(size = 12),
-        legend.position = "none")
+q_gg + prcp_gg + temp_gg
 
-gage_fish_all %>%
-  group_by(site_name, ann) %>%
-  reframe(abd_qty = Mode(abundance_qty))  %>%
-  ggplot(aes(x = abd_qty, fill = site_name)) +
-  geom_histogram(bins = 75) +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") + 
-  labs(
-    x = "Abundance Quantity",
-    y = "Frequency",
-    title = "Salmon Abundance Quantity by Site", 
-    fill = "Site") +
-  theme_minimal() +  
-  theme(strip.text = element_text(size = 12),  
-        axis.title.x = element_text(size = 14),  
-        axis.title.y = element_text(size = 14),  
-        legend.title = element_text(size = 14), 
-        legend.text = element_text(size = 12),
-        legend.position = "none", 
-        plot.margin = unit(c(.5, .5, .5, .5), "cm"))
+q_gg +prcp_gg 
 
+prcp_gg + temp_gg
+
+q_gg + temp_gg
 ```
-
-```{r, message=FALSE}
-#create a data slice
-write.csv(slice(gage_fish_all, c(1:4)), "all_data_preview.csv", )
-
-data_slice <- read.csv("./all_data_preview.csv")
-```
-
 
 ```{r}
 # lead the data so climate matches with returns, and some basic stats
@@ -263,7 +255,8 @@ fish_aov <- gage_fish_lead %>%
 
 gage_fish_lead %>%
   ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
-  geom_point() 
+  geom_line() + geom_point()
+
 
 
 ```
@@ -297,8 +290,7 @@ annual_salmon_returns <-
   left_join(abundance_stats, by = "site_name") %>%
   mutate(outlier = (abundance_lead > return_avg + return_sd | abundance_lead < return_avg - return_sd)) # checks if a given year is outside of 1 sd
 
-
-good_plot <-
+DischargeandReturns <-
   gage_fish_lead %>%
   filter(Date_lead < "2023-10-01") %>%
   ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
@@ -316,19 +308,45 @@ good_plot <-
 ```
 
 ```{r}
-#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore returns are all shifted up by four years.
-
-annual_salmon_returns_line <- annual_salmon_returns %>%
-  ggplot(aes (x = ann, y = abundance_lead, color = site_name)) + geom_line() + geom_point() +labs( title = "Salmon Abundance Over the Years")
 
 
-annual_salmon_returns_line <- annual_salmon_returns %>%
+```
+
+
+
+```{r}
+#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore climate data is all shifted up backwards by four years.
+
+
+annual_salmon_returns <- annual_salmon_returns %>%
+mutate(site_name = recode(site_name,
+"Elwha_River" = "Elwha River",
+"Dungeness_River" = "Dungeness River",
+"Skokomish_River" = "Skokomish River"))
+
+
+annual_salmon_returns %>%
+ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
+geom_line() +
+geom_point() + 
+theme_classic() +
+labs(
+title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year")
+
+
+annual_salmon_returns %>%
 ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
 geom_line() +
 geom_point() +
-labs(title = "Salmon Abundance Over the Years", x = "Year", y = "Abundance") +
- theme_minimal() +
- facet_wrap(~ site_name, scales = "free_y", ncol = 1)
+theme_classic() +
+labs(title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") +
+facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
 ```
