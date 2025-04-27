@@ -553,7 +553,7 @@ facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 ```{r}
 #Line graphs with updated data set. 
 
-aligned_data <- aligned_data %>%
+aligned_data_clean <- aligned_data %>%
 mutate(site_name = recode(site_name,
 "Elwha_River" = "Elwha River",
 "Dungeness_River" = "Dungeness River",
@@ -561,7 +561,7 @@ mutate(site_name = recode(site_name,
 
 
 #Returns over time of all three rivers on one graph.
-aligned_data %>%
+aligned_data_clean %>%
 ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
 geom_line() +
 geom_point() + 
@@ -574,7 +574,7 @@ x = "Year") +
 theme(legend.position = "bottom")
 
 #Returns in each seperate river on seperate graphs stacked together.
-aligned_data %>%
+aligned_data_clean %>%
 ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
 geom_line() +
 geom_point() +
@@ -596,23 +596,6 @@ theme(legend.position = "bottom")
 
 ```
 
-
-
-```{r}
-# Quickie model
-
-t_mod <- 
-  lm(formula = abundance_lead ~ , 
-     data = annual_salmon_returns)
-
-summary(t_mod)$coefficient
-
-gage_fish_lead %>%
-  # group_by(site_name, ann) %>%
-  ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
-  geom_point()
-
-```
 
 ```{r}
 # preliminary example of data surrounding a high returns year
@@ -761,6 +744,8 @@ piss <-
 where_fucked(piss)
 
 where_fucked(gage_fish_lead)
+
+where_fucked(aligned_data)
 
 
 
