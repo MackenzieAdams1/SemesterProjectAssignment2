@@ -368,6 +368,54 @@ facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 ```
 
 ```{r}
+#Line graphs with updated data set. 
+
+aligned_data <- aligned_data %>%
+mutate(site_name = recode(site_name,
+"Elwha_River" = "Elwha River",
+"Dungeness_River" = "Dungeness River",
+"Skokomish_River" = "Skokomish River"))
+
+
+#Returns over time of all three rivers on one graph.
+aligned_data %>%
+ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+geom_line() +
+geom_point() + 
+theme_classic() +
+labs(
+title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") + 
+theme(legend.position = "bottom")
+
+#Returns in each seperate river on seperate graphs stacked together.
+aligned_data %>%
+ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+geom_line() +
+geom_point() +
+theme_classic() +
+labs(title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") +
+facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
+theme(legend.position = "bottom")
+```
+
+```{r}
+#Mackenzie's attempt at statistics: 
+
+
+
+
+
+```
+
+
+
+```{r}
 # Quickie model
 
 t_mod <- 
