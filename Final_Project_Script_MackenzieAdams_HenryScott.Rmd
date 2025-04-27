@@ -130,7 +130,7 @@ fish_data <-
   lapply(read_csv) %>%
   bind_rows() %>%
   filter(data_type == "TSAEJ") %>%
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% 
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number", year = year + 1) %>% 
   select(abundance_qty,
          year,
          site_name) %>%
@@ -188,7 +188,8 @@ aligned_data <-
   addWaterYear() %>%
   left_join(., fish_data, by = c(
     "site_name" = "site_name",
-    "waterYear" = "year"))
+    "waterYear" = "year")) %>%
+  mutate(abundance_qty = abundance_qty)
 
 ```
 
