@@ -261,7 +261,18 @@ gage_fish_lead %>%
 
 ```
 
+
 ```{r}
+
+# Calculate the average and std dev of returns for each stream
+
+abundance_stats <- 
+  gage_fish_lead %>%
+  ungroup() %>%
+  summarise(return_avg = round(mean(abundance_lead, na.rm = T)), 
+            return_sd = round(sd(abundance_lead, na.rm = T)), 
+            .by = site_name)
+
 
 # Creating a chart with annual return as a single point while still keeping annual data for everything   else
 
@@ -275,12 +286,13 @@ annual_salmon_returns <-
       month = 10, 
       day = 1),
     high_flow = max(Flow)
-  )
-
+  ) %>% 
+  left_join(abundance_stats, by = "site_name") %>%
+  mutate(outlier = (abundance_lead > return_avg + return_sd | abundance_lead < return_avg - return_sd)) # checks if a given year is outside of 1 sd
 
 DischargeandReturns <-
   gage_fish_lead %>%
-  filter(Date < "2023-10-01") %>%
+  filter(Date_lead < "2023-10-01") %>%
   ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
   geom_line() +
   facet_wrap(facets = "site_name", 
@@ -348,13 +360,6 @@ facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
 ```{r}
-gage_fish_lead %>%
-  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
-  geom_line() 
-```
-
-
-```{r}
 # Quickie model
 
 t_mod <- 
@@ -374,10 +379,155 @@ gage_fish_lead %>%
 # preliminary example of data surrounding a high returns year
 
 gage_fish_lead %>%
-  filter(site_name == "Dungeness_River", Date_lead >= "2006-08-01" & Date_lead <= "2007-06-01") %>%
+  filter(site_name == "Dungeness_River", Date_lead >= "2006-08-01" & Date_lead < "2007-06-01") %>%
   ggplot(aes(x = Date_lead, y = Flow)) +
   geom_line(color = "blue")
   
 ```
+
+```{r}
+# plot all of the different salmon returns 
+annual_salmon_returns %>%
+  ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
+  geom_line() +
+  facet_wrap(~ site_name, nrow = 3, scale = "free")
+
+
+# Create a function and a loop that creates a ggplot object for when abundance is outside of sd
+outlier_plotter <-
+  function (f) {
+    if (f$outlier == TRUE) {
+      print("she works")
+    }else {
+      print("she dont work")
+    }
+  }
+
+
+annual_salmon_returns %>%
+  filter(site_name == "Dungeness_River") %>%
+  ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
+  geom_line() +
+  geom_point() 
+
+Dungeness_data <-
+  gage_fish_lead %>%
+  filter(site_name == "Dungeness_River")
+
+
+# uses some temp columns to create filtered data. 
+# filtered dates are based on arbitrarily generated Julian days, so changing the range first requires figuring out the corresponding Julian days.
+#this one works but only on Dungeness
+dungeness_julian <- 
+  Dungeness_data %>%
+  filter(ann_lead != 1986, ann_lead != 2027) %>%   #remove these rows bc theyre less than 365 days and that breaks things
+  group_by(ann_lead) %>%
+  mutate(fake_dates = seq(ymd('1970-01-01'),
+                          ymd('1970-12-31'), 
+                          by = '1 day'),
+         fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
+  ) %>%
+  filter(!(between(fake_julian, 151, 211))) %>%
+  bind_rows(                                    #re-add the eariler filtered rows 
+    (filter(
+      Dungeness_data, year(Date_lead) < 1987)
+    ),
+    .) %>%
+  bind_rows(
+    (filter(
+      Dungeness_data, year(Date_lead) > 2026)
+    ),
+    .) %>%
+  arrange(Date_lead)
+
+
+# attempting to do it to all sites
+gage_fish_lead_filt <-
+  gage_fish_lead %>%
+  group_by(site_name) %>%
+  filter(ann_lead != 1986, ann_lead != 2027) %>%   #remove these rows bc they're less than 365 days and that breaks things
+  group_by(ann_lead) %>%
+  mutate(fake_dates = seq(ymd('1970-01-01'),
+                          ymd('1970-12-31'), 
+                          by = '1 day'),
+         fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
+  ) %>%
+  filter(!(between(fake_julian, 151, 211))) %>%
+  bind_rows(                                    #re-add the earlier filtered rows 
+    (filter(
+      gage_fish_lead, year(Date_lead) < 1987)
+    ),
+    .) %>%
+  bind_rows(
+    (filter(
+      gage_fish_lead, year(Date_lead) > 2026)
+    ),
+    .) %>%
+  arrange(Date_lead)
+
+
+# create it as a function and lapply it?
+
+migration_filter <-
+  function(f) {
+    f %>%
+      filter(ann_lead != 1986, ann_lead != 2027) %>%   #remove these rows bc theyre less than 365 days and that breaks things
+      group_by(ann_lead) %>%
+      mutate(fake_dates = seq(ymd('1970-01-01'),
+                              ymd('1970-12-31'), 
+                              by = '1 day'),
+             fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
+      ) %>%
+      filter(!(between(fake_julian, 151, 211))) %>%
+      bind_rows(                                    #re-add the eariler filtered rows 
+        (filter(
+          f, 
+          year(Date_lead) < 1987)),
+        .) %>%
+      bind_rows(
+        filter(
+          f, 
+          between(Date_lead, ymd("2027-01-01"), ymd("2027-05-31")) |
+          ymd(Date_lead) > ymd("2027-07-31")),
+        .) %>%
+      arrange(Date_lead)
+  }
+
+gage_fish_lead %>%
+  filter(site_name == "Skokomish_River") %>%
+  migration_filter() %>%
+  view()
+
+gage_fish_lead %>%
+  group_by(site_name) %>%
+  group_map(~ migration_filter(.x))
+
+
+where_fucked <-
+  function(g) {
+    g %>%
+      group_by(site_no) %>%
+      summarize(length = length(Date),
+                sum_na = sum(is.na(Flow))
+      )
+  }
+
+piss <-
+  readRDS("./NWIS_data.rdata") %>%
+  renameNWISColumns() %>%
+  view()
+
+where_fucked(piss)
+
+where_fucked(gage_fish_lead)
+
+
+
+
+
+
+
+```
+
 
 
