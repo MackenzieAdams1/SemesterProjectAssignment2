@@ -26,6 +26,7 @@ library(ggpubr) # for adding R and P vals to graphs
 library(DescTools) # for doing Mode statistical calc
 library(rstatix)
 library(midasr)
+library(ggiraphExtra)
 ```
 
 ```{r}
@@ -190,10 +191,63 @@ aligned_data <-
   addWaterYear() %>%
   left_join(., fish_data, by = c(
     "site_name" = "site_name",
-    "waterYear" = "year")) %>%
-  mutate(abundance_qty = abundance_qty)
+    "waterYear" = "year"))
+
+aligned_data_ann <-
+  aligned_data %>%
+  filter(waterYear != 1986) %>%
+  group_by(site_name, waterYear) %>%
+  reframe(abundance_qty = Mode(abundance_qty),
+          Flow_median = median(Flow, na.rm = T),
+          Flow_max = max(Flow, na.rm = T),
+          Flow_min = min(Flow, na.rm = T),
+          t_ann_median = median(t_avg_C, na.rm = T),
+          t_ann_min = min(t_avg_C, na.rm = T),
+          t_ann_max = max(t_avg_C, na.rm = T),
+          prcp_median = median(prcp_daily_mm, na.rm = T),
+          prcp_max = max(prcp_daily_mm, na.rm = T),
+          prcp_min = min(prcp_daily_mm, na.rm = T))
 
 ```
+
+```{r}
+# making linear regressions
+fish_mlr_max <-
+  aligned_data_ann %>%
+  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .)
+
+fish_mlr_min <-
+  aligned_data_ann %>%
+  lm(abundance_qty ~ Flow_min + t_ann_min + prcp_min, .)
+
+fish_mlr_wcs <-
+  aligned_data_ann %>%
+  filter(site_name != "Elwha_River") %>%
+  group_map(~ lm(abundance_qty ~ Flow_min + t_ann_max, data = .))
+
+lapply(fish_mlr_wcs, summary)
+
+aligned_data_ann %>%
+  ggplot(aes(x = prcp_median, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+  
+
+summary(fish_mlr_wcs)
+
+ggPredict(fish_mlr_wcs, interactive = T)
+
+fish_mlr_dung_wcs <-
+  aligned_data_ann %>%
+  filter(site_name == "Dungeness_River") %>%
+  lm(abundance_qty ~ Flow_min + t_ann_max, .) %>%
+  summary()
+
+
+
+```
+
 
 
 ```{r}
@@ -751,6 +805,71 @@ where_fucked(aligned_data)
 
 ```
 
+
+```{r}
+
+# create a df thats just dungeness align data for easy testing. Remove once function works on full df
+dungeness_align <-
+  aligned_data %>%
+  filter(site_name == "Dungeness_River")
+
+
+# create a migration filter that works with the aligned_data df
+migration_filter_align <-
+  function(f) {
+    f %>%
+      filter(waterYear != 1986) %>%   #remove these rows bc theyre less than 365 days and that breaks things
+      group_by(waterYear) %>%
+      mutate(fake_dates = seq(ymd('1970-01-01'),
+                              ymd('1970-12-31'), 
+                              by = '1 day'),
+             fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
+      ) }
+    
+  #   %>%
+  #     filter(!(between(fake_julian, 151, 211))) %>%
+  #     bind_rows(                                    #re-add the eariler filtered rows 
+  #       (filter(
+  #         f, 
+  #         year(Date_lead) < 1987)),
+  #       .) %>%
+  #     bind_rows(
+  #       filter(
+  #         f, 
+  #         between(Date_lead, ymd("2027-01-01"), ymd("2027-05-31")) |
+  #         ymd(Date_lead) > ymd("2027-07-31")),
+  #       .) %>%
+  #     arrange(Date_lead)
+  # }
+  # 
+
+migration_filter_align(dungeness_align) %>%
+  view()
+
+
+dungeness_align %>%
+  filter(waterYear == 2005) %>%
+  view()
+
+
+
+dungeness_align %>%
+  group_by(waterYear) %>%
+  nrow()
+
+group_map(why,nrow, ...)
+
+
+dungeness_align %>%
+  filter(waterYear == 1992) %>%
+  group_by(Date) %>%
+  filter(n() > 1) %>%
+  distinct(Date) %>%
+  pull(Date) 
+
+
+
+```
 
 
 ```{r}
