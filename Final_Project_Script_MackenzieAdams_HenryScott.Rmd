@@ -357,7 +357,7 @@ annual_salmon_returns_2 <-
   mutate(outlier = (abundance_qty > return_avg + return_sd | abundance_qty < return_avg - return_sd)) # checks if a given year is outside of 1 sd
 
 
-#Creates a chart using the new data set with two y axis, legend, colors, etc. 
+#Creates a chart using the new data set with two y axis, legend, colors, etc. of Date vs Flow vs Salmon returns
 
 DischargeandReturns_2 <-
   aligned_data %>%
@@ -380,6 +380,131 @@ DischargeandReturns_2 <-
  legend.title = element_text(face = "bold") # Bold legend title
  ) +
  labs(color = "Site Name")
+
+```
+
+
+```{r}
+#none of these work quite right yet. But they are trying to plot temperature against salmon returns
+
+TemperatureandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Average Temperature (C)", sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
+
+
+TemperatureandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Average Temperature (C)", limits = c(-10,40), sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
+
+
+TemperatureandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Average Temperature (C)", limits = c(-10, 40), sec.axis = sec_axis(~ . * 5, name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
+```
+
+```{r}
+#These show precipitation vs. fish data but also have some graphing errors.
+
+
+PrecipitationeandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Daily Precipitation (mm)", sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
+
+PrecipitationeandReturns_2 <-
+  aligned_data %>%
+  filter(Date < "2023-10-01") %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  facet_wrap(~ site_name, 
+             nrow = 3, 
+             scales = "free") +
+  geom_point(data = annual_salmon_returns_2, 
+             aes(x = as.POSIXct(ann), 
+                 y = abundance_qty), 
+             color = "black", 
+             size = .75) + 
+  scale_y_continuous(name = "Daily Precipitation (mm)", limits = c(0, 200), sec.axis = sec_axis(~ . * 5, name = "Salmon Return Abundance")) + 
+  theme_minimal() +
+  theme(
+ axis.title.y.right = element_text(color = "black"),
+ legend.position = "bottom", # Position legend at the bottom
+ legend.title = element_text(face = "bold") # Bold legend title
+ ) +
+ labs(color = "Site Name")
+
+
 
 ```
 
