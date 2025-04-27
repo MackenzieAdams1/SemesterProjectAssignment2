@@ -64,7 +64,7 @@ gage_data <-
   inner_join(gage_ids, .) %>%
   renameNWISColumns() %>%
   drop_na(Flow) %>%
-  mutate(water_year = calcWaterYear(Date))
+  mutate(water_year = calcWaterYear(Date)) %>%
   group_by(site_name, site_no)
 
 
@@ -124,7 +124,7 @@ fish_files <-
   dir_ls("./Salmon_Data/")
 
 
-# creats a df of fish data. Originally, the code 1 chunk below this did this within its own workflow but I made it a seperate df bc i need it somewhere else, not attached to climate data
+# creates a df of fish data. Originally, the code 1 chunk below this did this within its own workflow but I made it a seperate df bc i need it somewhere else, not attached to climate data
 fish_data <-
   fish_files %>%
   lapply(read_csv) %>%
