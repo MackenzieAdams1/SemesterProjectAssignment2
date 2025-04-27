@@ -25,6 +25,7 @@ library(fs)
 library(ggpubr) # for adding R and P vals to graphs
 library(DescTools) # for doing Mode statistical calc
 library(rstatix)
+library(midasr)
 ```
 
 ```{r}
@@ -130,6 +131,7 @@ fish_data <-
   lapply(read_csv) %>%
   bind_rows() %>%
   filter(data_type == "TSAEJ") %>%
+  # this line moves the allignment of the fish data by a year bc supposedly that makes things line up better. Its like 11:30 and im tired and i dont trust myself to solve dates
   mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number", year = year + 1) %>% 
   select(abundance_qty,
          year,
@@ -327,7 +329,6 @@ DischargeandReturns <-
 ```
 
 
-
 ```{r}
 #Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore climate data is all shifted up backwards by four years.
 
@@ -365,18 +366,6 @@ facet_wrap(~ site_name, scales = "free_y", ncol = 1)
 
 
 ```
-
-```{r}
-
-
-
-```
-
-
-
-
-
-
 
 ```{r}
 # Quickie model
@@ -531,6 +520,8 @@ where_fucked <-
       )
   }
 
+migration_filter(aligned_data)
+
 piss <-
   readRDS("./NWIS_data.rdata") %>%
   renameNWISColumns() %>%
@@ -545,4 +536,10 @@ where_fucked(gage_fish_lead)
 ```
 
 
+
+```{r}
+midas_r()
+
+
+```
 
