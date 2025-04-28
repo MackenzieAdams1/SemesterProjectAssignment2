@@ -167,7 +167,7 @@ gage_fish_lead <-
 
 
 ```{r}
-#Mackenzie's attempt to correctly offset the data: this is closer than what we have but still not quite right
+#Offsetting the climate data by four years (ex. salmon returns that occured during 1990's water year are now dependent on 1986 climate data) and assigning the salmon return values to change at each new water year.
 
 gage_fish_lead_2 <- gage_fish_all %>%
   mutate(Date = as.Date(Date))
@@ -193,70 +193,58 @@ aligned_data <-
     "site_name" = "site_name",
     "waterYear" = "year"))
 
-aligned_data_ann <-
-  aligned_data %>%
-  filter(waterYear != 1986) %>%
-  group_by(site_name, waterYear) %>%
-  reframe(abundance_qty = Mode(abundance_qty),
-          Flow_median = median(Flow, na.rm = T),
-          Flow_max = max(Flow, na.rm = T),
-          Flow_min = min(Flow, na.rm = T),
-          t_ann_median = median(t_avg_C, na.rm = T),
-          t_ann_min = min(t_avg_C, na.rm = T),
-          t_ann_max = max(t_avg_C, na.rm = T),
-          prcp_median = median(prcp_daily_mm, na.rm = T),
-          prcp_max = max(prcp_daily_mm, na.rm = T),
-          prcp_min = min(prcp_daily_mm, na.rm = T))
-
 ```
-
-```{r}
-# making linear regressions
-fish_mlr_max <-
-  aligned_data_ann %>%
-  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .)
-
-fish_mlr_min <-
-  aligned_data_ann %>%
-  lm(abundance_qty ~ Flow_min + t_ann_min + prcp_min, .)
-
-fish_mlr_wcs <-
-  aligned_data_ann %>%
-  filter(site_name != "Elwha_River") %>%
-  group_map(~ lm(abundance_qty ~ Flow_min + t_ann_max, data = .))
-
-lapply(fish_mlr_wcs, summary)
-
-aligned_data_ann %>%
-  ggplot(aes(x = prcp_median, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
-  
-
-summary(fish_mlr_wcs)
-
-ggPredict(fish_mlr_wcs, interactive = T)
-
-fish_mlr_dung_wcs <-
-  aligned_data_ann %>%
-  filter(site_name == "Dungeness_River") %>%
-  lm(abundance_qty ~ Flow_min + t_ann_max, .) %>%
-  summary()
-
-
-
-```
-
 
 
 ```{r}
 #This code produces a figure that shows years on the x axis and discharge on the y-axis for the three rivers of interest. The Dungeness River produces substantially less discharge compared to the Elwha and the Skokomish, therefore we set the boundaries for all three to be "free" so that patterns in discharge can more easily be examined and the data fills up the whole graph area.
 
 q_gg <-
-  gage_fish_all %>%
+  aligned_data_clean %>%
   ggplot(aes(x = Date, y = Flow, color = site_name)) +
   geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none", )
+
+#Shows river discharge over time for the Skokomish.
+q_gg_Skokomish <-
+  aligned_data_clean %>%
+  filter(site_name == "Skokomish River") %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line(color = "dodgerblue") + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none", )
+
+#Shows river discharge over time for the Dungeness.
+q_gg_Dungeness <-
+  aligned_data_clean %>%
+  filter(site_name == "Dungeness River") %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none", )
+
+#Shows river discharge over time for the Elwha.
+q_gg_Elwha <-
+  aligned_data_clean %>%
+  filter(site_name == "Elwha River") %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line(color = "limegreen") + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
   labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
@@ -271,9 +259,51 @@ q_gg <-
 #This code generates a plot with year on the x-axis and precipitation(mm) on the y-axis for the areas where the three streams of interest are located.
 
 prcp_gg <-
-  gage_fish_all %>%
+  aligned_data_clean %>%
   ggplot(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
   geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+#Plot of precipitation over the years for the Elwha. 
+prcp_gg_Elwha <-
+  aligned_data_clean %>%
+  filter(site_name == "Elwha River") %>%
+  ggplot(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  geom_line(color = "limegreen") + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+#Plot of precipitation over the years for the Dungeness.
+prcp_gg_Dungeness <-
+  aligned_data_clean %>%
+  filter(site_name == "Dungeness River") %>%
+  ggplot(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+#Plot of precipitation over the years for the Skokomish. 
+prcp_gg_Skokomish <-
+  aligned_data_clean %>%
+  filter(site_name == "Skokomish River") %>%
+  ggplot(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
+  geom_line(color = "dodgerblue") + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
   labs( x = "Year", y = "Precipitation (mm)", color = "Gage") +
@@ -289,7 +319,7 @@ prcp_gg <-
 #This code generates a plot with year on the x-axis and average temperature(C) on the y-axis for the areas where the three streams of interest are located.
 
 temp_gg <-
-  gage_fish_all %>%
+  aligned_data_clean %>%
   ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
   geom_line() + 
   theme_minimal() +
@@ -299,6 +329,132 @@ temp_gg <-
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
         legend.position = "none",)
+
+#Plot of precipitation over the years for the Elwha. 
+
+temp_gg_Dungeness <-
+  aligned_data_clean %>%
+  filter(site_name == "Dungeness River") %>%
+  ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
+  geom_line() + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+#Plot of precipitation over the years for the Elwha. 
+
+temp_gg_Elwha <-
+  aligned_data_clean %>%
+  filter(site_name == "Elwha River") %>%
+  ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
+  geom_line(color = "limegreen") + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+#Plot of precipitation over the years for the Elwha. 
+temp_gg_Skokomish <-
+  aligned_data_clean %>%
+  filter(site_name == "Skokomish River") %>%
+  ggplot(aes(x = Date, y = t_avg_C, color = site_name)) +
+  geom_line(color = "dodgerblue") + 
+  theme_minimal() +
+  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
+  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  theme(strip.text = element_text(size = 12), 
+        axis.title.x = element_text(size = 14), 
+        axis.title.y = element_text(size = 14), 
+        legend.position = "none",)
+
+```
+
+
+```{r}
+#Line graphs with updated data set. 
+
+aligned_data_clean <- aligned_data %>%
+mutate(site_name = recode(site_name,
+"Elwha_River" = "Elwha River",
+"Dungeness_River" = "Dungeness River",
+"Skokomish_River" = "Skokomish River"))
+
+
+#Returns over time of all three rivers on one graph.
+aligned_data_clean %>%
+ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+geom_line() +
+geom_point() + 
+theme_classic() +
+labs(
+title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") + 
+theme(legend.position = "bottom")
+
+#Returns in each seperate river on seperate graphs stacked together.
+aligned_data_clean %>%
+ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+geom_line() +
+geom_point() +
+theme_classic() +
+labs(title = "Salmon Abundance Over Time",
+color = "Site",
+y = "Salmon Return Abundance",
+x = "Year") +
+facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
+theme(legend.position = "bottom")
+
+#Salmon returns over the years in the Skokomish
+SkokomishReturns <-
+aligned_data_clean %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+ geom_line(color = "dodgerblue") +
+ geom_point(color = "dodgerblue") +
+ theme_classic() +
+ labs(title = "Salmon Abundance Over Time",
+ color = "Site",
+ y = "Salmon Return Abundance",
+ x = "Year") +
+ theme(legend.position = "bottom")
+
+#Salmon returns over the years in the Elwha
+ElwhaReturns <-
+aligned_data_clean %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+ geom_line(color = "limegreen") +
+ geom_point(color = "limegreen") +
+ theme_classic() +
+ labs(title = "Salmon Abundance Over Time",
+ color = "Site",
+ y = "Salmon Return Abundance",
+ x = "Year") +
+ theme(legend.position = "bottom")
+
+#Salmon returns over the years in the Dungeness
+DungenessReturns <-
+aligned_data_clean %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+ geom_line() +
+ geom_point() +
+ theme_classic() +
+ labs(title = "Salmon Abundance Over Time",
+ color = "Site",
+ y = "Salmon Return Abundance",
+ x = "Year") +
+ theme(legend.position = "bottom")
+
 ```
 
 
@@ -312,7 +468,17 @@ q_gg +prcp_gg
 prcp_gg + temp_gg
 
 q_gg + temp_gg
+
+
+SkokomishReturns / q_gg_Skokomish / prcp_gg_Skokomish / temp_gg_Skokomish 
+
+DungenessReturns / q_gg_Dungeness / prcp_gg_Dungeness / temp_gg_Dungeness 
+
+ElwhaReturns / q_gg_Elwha / prcp_gg_Elwha / temp_gg_Elwha
+
 ```
+
+
 
 ```{r}
 # lead the data so climate matches with returns, and some basic stats
@@ -563,7 +729,70 @@ PrecipitationeandReturns_2 <-
 ```
 
 
+```{r}
+aligned_data_stats <-
+  aligned_data %>%
+  filter(waterYear != 1986) %>%
+  group_by(site_name, waterYear) %>%
+  reframe(abundance_qty = Mode(abundance_qty),
+          Flow_median = median(Flow, na.rm = T),
+          Flow_max = max(Flow, na.rm = T),
+          Flow_min = min(Flow, na.rm = T),
+          t_ann_median = median(t_avg_C, na.rm = T),
+          t_ann_min = min(t_avg_C, na.rm = T),
+          t_ann_max = max(t_avg_C, na.rm = T),
+          prcp_median = median(prcp_daily_mm, na.rm = T),
+          prcp_max = max(prcp_daily_mm, na.rm = T),
+          prcp_min = min(prcp_daily_mm, na.rm = T))
+```
 
+```{r}
+# Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
+
+fish_mlr_max <-
+  aligned_data_stats %>%
+  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .)
+
+fish_mlr_min <-
+  aligned_data_stats %>%
+  lm(abundance_qty ~ Flow_min + t_ann_min + prcp_min, .)
+
+fish_mlr_wcs <-
+  aligned_data_stats %>%
+  filter(site_name != "Elwha_River") %>%
+  group_map(~ lm(abundance_qty ~ Flow_min + t_ann_max, data = .))
+
+lapply(fish_mlr_wcs, summary)
+
+aligned_data_stats %>%
+  ggplot(aes(x = prcp_median, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+
+aligned_data_stats %>%
+  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+
+aligned_data_stats %>%
+  ggplot(aes(x = Flow_min, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+
+
+summary(fish_mlr_wcs)
+
+ggPredict(fish_mlr_wcs, interactive = T)
+
+fish_mlr_dung_wcs <-
+  aligned_data_stats %>%
+  filter(site_name == "Dungeness_River") %>%
+  lm(abundance_qty ~ Flow_min + t_ann_max, .) %>%
+  summary()
+```
 
 
 ```{r}
