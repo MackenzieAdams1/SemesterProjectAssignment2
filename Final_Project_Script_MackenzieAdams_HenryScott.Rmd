@@ -782,11 +782,21 @@ fish_mlr_wcs <-
   group_map(~ lm(abundance_qty ~ Flow_min + t_ann_max, data = .))
 
 lapply(fish_mlr_wcs, summary)
+```
 
+
+```{r}
+#Creating linear regression plots
+
+install.packages("ggpmisc")  # if not installed
+library(ggpmisc)
+
+#With equation displayed
 aligned_data_stats %>%
   ggplot(aes(x = prcp_max, y = abundance_qty, color = site_name)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), ..rr.label.., sep = "~~")), formula = y ~x, parse = TRUE, size = 3) +
   facet_wrap(facet = "site_name", nrow = 3, scale = "free") +
   labs(
  color = "site name",
@@ -798,6 +808,7 @@ aligned_data_stats %>%
  legend.position = "bottom"
  ) 
 
+#without equation displayed
 aligned_data_stats %>%
  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
  geom_point() +
@@ -813,6 +824,24 @@ aligned_data_stats %>%
  legend.position = "bottom"
  ) 
 
+#with equation displayed
+aligned_data_stats %>%
+ ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+ geom_point() +
+ geom_smooth(method = "lm") +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), ..rr.label.., sep = "~~")), formula = y ~x, parse = TRUE, size = 3) +
+ facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+ labs(
+ color = "site name",
+ x = "Max Annual Discharge (cfs)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ ) 
+
+#without equation displayed
 aligned_data_stats %>%
   ggplot(aes(x = Flow_min, y = abundance_qty, color = site_name)) +
   geom_point() +
@@ -828,6 +857,24 @@ aligned_data_stats %>%
  legend.position = "bottom"
  )
 
+#with equation displayed
+aligned_data_stats %>%
+  ggplot(aes(x = Flow_min, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), ..rr.label.., sep = "~~")), formula = y ~x, parse = TRUE, size = 3) +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Minimum Annual Discharge (cfs)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
+
+#without equation displayed
 aligned_data_stats %>%
   ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
   geom_point() +
@@ -843,6 +890,41 @@ aligned_data_stats %>%
  legend.position = "bottom"
  )
 
+#with equation displayed
+aligned_data_stats %>%
+  ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), ..rr.label.., sep = "~~")), formula = y ~x, parse = TRUE, size = 3) +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Annual Minimum Temperature (C)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
+
+#without equation displayed
+aligned_data_stats %>%
+  ggplot(aes(x = t_ann_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), ..rr.label.., sep = "~~")), formula = y ~x, parse = TRUE, size = 3) +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Annual Max Temperature (C)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
+
+#with equation displayed
 aligned_data_stats %>%
   ggplot(aes(x = t_ann_max, y = abundance_qty, color = site_name)) +
   geom_point() +
@@ -857,7 +939,6 @@ aligned_data_stats %>%
  theme(
  legend.position = "bottom"
  )
-
 
 #!!!!I cant get this to work on my end!!!!! breaks at the 2nd chunk
 summary(fish_mlr_wcs)
