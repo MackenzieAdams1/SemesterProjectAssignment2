@@ -471,11 +471,11 @@ prcp_gg + temp_gg
 q_gg + temp_gg
 
 
-SkokomishReturns / q_gg_Skokomish / prcp_gg_Skokomish / temp_gg_Skokomish 
+SkokomishReturns + q_gg_Skokomish + prcp_gg_Skokomish + temp_gg_Skokomish 
 
-DungenessReturns / q_gg_Dungeness / prcp_gg_Dungeness / temp_gg_Dungeness 
+DungenessReturns + q_gg_Dungeness + prcp_gg_Dungeness + temp_gg_Dungeness 
 
-ElwhaReturns / q_gg_Elwha / prcp_gg_Elwha / temp_gg_Elwha
+ElwhaReturns + q_gg_Elwha + prcp_gg_Elwha + temp_gg_Elwha
 
 ```
 
@@ -821,6 +821,36 @@ aligned_data_stats %>%
   labs(
  color = "site name",
  x = "Minimum Annual Discharge (cfs)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
+
+aligned_data_stats %>%
+  ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Annual Minimum Temperature (C)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
+
+aligned_data_stats %>%
+  ggplot(aes(x = t_ann_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Annual Max Temperature (C)",
  y = "Salmon Return Abundance"
  ) +
  theme_minimal() +
