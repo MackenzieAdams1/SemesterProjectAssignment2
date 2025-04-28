@@ -135,7 +135,7 @@ fish_data <-
   filter(data_type == "TSAEJ") %>%
   
   # this line moves the allignment of the fish data by a year bc supposedly that makes things line up better. Its like 11:30 and im tired and i dont trust myself to solve dates
-  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number", year = year + 1) %>% 
+  mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number") %>% 
   select(abundance_qty,
          year,
          site_name) %>%
@@ -794,13 +794,30 @@ site_name == "Dungeness_River" ~ "Dungeness River",
 ```
 
 ```{r}
+#MinQ, MaxQ, MedianQ
+
+DungenessReturns <-
+aligned_data_clean %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+ geom_line() +
+ geom_point() +
+ theme_classic() +
+ labs(title = "Salmon Abundance Over Time",
+ color = "Site",
+ y = "Salmon Return Abundance",
+ x = "Year") +
+ theme(legend.position = "bottom")
+```
+
+
+```{r}
 # Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
 
 fish_mlr_max <-
   aligned_data_stats %>%
-  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .)
-
-lapply(fish_mlr_max, summary)
+  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .) %>%
+  summary()
 
 fish_mlr_min <-
   aligned_data_stats %>%
