@@ -1237,7 +1237,21 @@ dungeness_align %>%
 gage_fish_all %>%
   filter(site_name == "Skokomish_River") %>%
   ggplot(aes(x = Date, y = Flow, color = Flow_cd)) +
-  geom_point()
+  geom_point() +
+  labs(
+    color = "Flow Code",
+    x = "Year",
+    y = "Salmon Return Abundance",
+    title = "Skokomish River" 
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", 
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  theme()
+
+ggsave("skoko_cd code.jpeg")
 
 ```
 
