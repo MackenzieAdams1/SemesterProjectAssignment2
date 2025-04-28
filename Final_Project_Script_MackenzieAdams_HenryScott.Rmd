@@ -65,7 +65,7 @@ gage_ids <-
 
 gage_data <-
   readRDS("NWIS_data.rdata") %>%
-  inner_join(gage_ids, .) %>%
+  inner_join(gage_ids, .) %>% 
   renameNWISColumns() %>%
   drop_na(Flow) %>%
   mutate(water_year = calcWaterYear(Date)) %>%
@@ -583,7 +583,7 @@ DischargeandReturns <-
 
 #DO WE NEED THESE TWO CHUNKS? WHAT DO THEY DO? DO THEY GET USED AGAIN?
 ```{r}
-#Above code using new data frame to make it more accurate
+# Above code using new data frame to make it more accurate
 
 # Calculate the average and std dev of returns for each stream
 
@@ -827,13 +827,17 @@ fish_mlr_min <-
 lapply(fish_mlr_min, summary)
 
 fish_mlr_wcs <-
-  aligned_data_stats %>%
+  gage_fish_all %>%
   group_by(site_name) %>%
-  group_map(~ lm(abundance_qty ~ Flow_min, data = .))
+  group_map(~ lm(abundance_qty ~ Flow, data = .))
 
-lapply(fish_mlr_wcs, summary)
+fish_mlr_wcs_summ <-
+  lapply(fish_mlr_wcs, summary) 
+
+names(fish_mlr_wcs_summ) <- c("Dunguness River", "Elwha River", "Skokomish River")
+
+fish_mlr_wcs_summ[[2]]
 ```
-
 
 ```{r}
 #Creating linear regression plots
@@ -1224,6 +1228,15 @@ dungeness_align %>%
   pull(Date) 
 
 
+
+```
+
+```{r}
+
+gage_fish_all %>%
+  filter(site_name == "Skokomish_River") %>%
+  ggplot(aes(x = Date, y = Flow, color = Flow_cd)) +
+  geom_point()
 
 ```
 
