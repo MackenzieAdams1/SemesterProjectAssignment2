@@ -1241,6 +1241,14 @@ gage_fish_all %>%
 
 ```
 
+#Animated Graph
+```{r}
+
+gage_fish_all %>%
+  
+
+```
+
 
 ```{r}
 midas_r()
