@@ -118,7 +118,7 @@ gage_data_all <-
 #Now the discharge, precipitation, and temperature data is all in one data frame.
 ```
 
-
+#DO WE NEED ALL OF THIS CODE? IS SOME OF IT A REPEAT OF MY NEW OFFSET DATA CODE?
 ```{r}
 # ADD FISH DATA: This code reads in csv files containing salmon return data downloaded for the particular rivers of interest from the stateofsalmon.wa.gov site.
 
@@ -132,6 +132,7 @@ fish_data <-
   lapply(read_csv) %>%
   bind_rows() %>%
   filter(data_type == "TSAEJ") %>%
+  
   # this line moves the allignment of the fish data by a year bc supposedly that makes things line up better. Its like 11:30 and im tired and i dont trust myself to solve dates
   mutate(site_name = paste0(str_extract(population_name, "^\\w+"), "_River"), .before = "stock_number", year = year + 1) %>% 
   select(abundance_qty,
@@ -167,7 +168,7 @@ gage_fish_lead <-
 
 
 ```{r}
-#Offsetting the climate data by four years (ex. salmon returns that occured during 1990's water year are now dependent on 1986 climate data) and assigning the salmon return values to change at each new water year.
+#Offsetting the climate data by four years (ex. salmon returns that occurred during 1990's water year are now dependent on 1986 climate data) and assigning the salmon return values to change at each new water year.
 
 gage_fish_lead_2 <- gage_fish_all %>%
   mutate(Date = as.Date(Date))
@@ -479,7 +480,7 @@ ElwhaReturns / q_gg_Elwha / prcp_gg_Elwha / temp_gg_Elwha
 ```
 
 
-
+#DO WE NEED THIS CHUNK?
 ```{r}
 # lead the data so climate matches with returns, and some basic stats
 
@@ -502,7 +503,7 @@ gage_fish_lead %>%
 
 ```
 
-
+#DO WE NEED THIS CHUNK? CHECK THE CHUNK BELOW I THINK I DID ALL THE SAME WITH THE UPDATED DATA
 ```{r}
 
 # Calculate the average and std dev of returns for each stream
@@ -547,6 +548,7 @@ DischargeandReturns <-
 
 ```
 
+#DO WE NEED THESE TWO CHUNKS? WHAT DO THEY DO? DO THEY GET USED AGAIN?
 ```{r}
 #Above code using new data frame to make it more accurate
 
@@ -575,8 +577,10 @@ annual_salmon_returns_2 <-
   ) %>% 
   left_join(abundance_stats_2, by = "site_name") %>%
   mutate(outlier = (abundance_qty > return_avg + return_sd | abundance_qty < return_avg - return_sd)) # checks if a given year is outside of 1 sd
+```
 
 
+```{r}
 #Creates a chart using the new data set with two y axis, legend, colors, etc. of Date vs Flow vs Salmon returns
 
 DischargeandReturns_2 <-
@@ -730,20 +734,31 @@ PrecipitationeandReturns_2 <-
 
 
 ```{r}
+#This code creates some stats about our aligned data.
+
 aligned_data_stats <-
-  aligned_data %>%
-  filter(waterYear != 1986) %>%
-  group_by(site_name, waterYear) %>%
-  reframe(abundance_qty = Mode(abundance_qty),
-          Flow_median = median(Flow, na.rm = T),
-          Flow_max = max(Flow, na.rm = T),
-          Flow_min = min(Flow, na.rm = T),
-          t_ann_median = median(t_avg_C, na.rm = T),
-          t_ann_min = min(t_avg_C, na.rm = T),
-          t_ann_max = max(t_avg_C, na.rm = T),
-          prcp_median = median(prcp_daily_mm, na.rm = T),
-          prcp_max = max(prcp_daily_mm, na.rm = T),
-          prcp_min = min(prcp_daily_mm, na.rm = T))
+ aligned_data %>%
+ filter(waterYear != 1986) %>%
+ mutate(site_name = case_when(
+site_name == "Dungeness_River" ~ "Dungeness River",
+ site_name == "Elwha_River" ~ "Elwha River",
+ site_name == "Skokomish_River" ~ "Skokomish River",
+ TRUE ~ site_name
+ )) %>%
+ group_by(site_name, waterYear) %>%
+ reframe(
+ abundance_qty = Mode(abundance_qty),
+ Flow_median = median(Flow, na.rm = TRUE),
+ Flow_max = max(Flow, na.rm = TRUE),
+ Flow_min = min(Flow, na.rm = TRUE),
+ t_ann_median = median(t_avg_C, na.rm = TRUE),
+ t_ann_min = min(t_avg_C, na.rm = TRUE),
+ t_ann_max = max(t_avg_C, na.rm = TRUE),
+ prcp_median = median(prcp_daily_mm, na.rm = TRUE),
+ prcp_max = max(prcp_daily_mm, na.rm = TRUE),
+ prcp_min = min(prcp_daily_mm, na.rm = TRUE)
+ )
+
 ```
 
 ```{r}
@@ -753,9 +768,13 @@ fish_mlr_max <-
   aligned_data_stats %>%
   lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .)
 
+lapply(fish_mlr_max, summary)
+
 fish_mlr_min <-
   aligned_data_stats %>%
   lm(abundance_qty ~ Flow_min + t_ann_min + prcp_min, .)
+
+lapply(fish_mlr_min, summary)
 
 fish_mlr_wcs <-
   aligned_data_stats %>%
@@ -765,24 +784,52 @@ fish_mlr_wcs <-
 lapply(fish_mlr_wcs, summary)
 
 aligned_data_stats %>%
-  ggplot(aes(x = prcp_median, y = abundance_qty, color = site_name)) +
+  ggplot(aes(x = prcp_max, y = abundance_qty, color = site_name)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") +
+  labs(
+ color = "site name",
+ x = "Max Annual Precipitation (mm)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ ) 
 
 aligned_data_stats %>%
-  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+ ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+ geom_point() +
+ geom_smooth(method = "lm") +
+ facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+ labs(
+ color = "site name",
+ x = "Max Annual Discharge (cfs)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ ) 
 
 aligned_data_stats %>%
   ggplot(aes(x = Flow_min, y = abundance_qty, color = site_name)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free")
+  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
+  labs(
+ color = "site name",
+ x = "Minimum Annual Discharge (cfs)",
+ y = "Salmon Return Abundance"
+ ) +
+ theme_minimal() +
+ theme(
+ legend.position = "bottom"
+ )
 
 
+#!!!!I cant get this to work on my end!!!!! breaks at the 2nd chunk
 summary(fish_mlr_wcs)
 
 ggPredict(fish_mlr_wcs, interactive = T)
@@ -795,91 +842,7 @@ fish_mlr_dung_wcs <-
 ```
 
 
-```{r}
-#Line graphs showing how salmon populations have changed in the three rivers of interest over time. The returns are adjusted so the patterns align with the year the juveniles spent in the river. Therefore climate data is all shifted up backwards by four years.
-
-
-annual_salmon_returns <- annual_salmon_returns %>%
-mutate(site_name = recode(site_name,
-"Elwha_River" = "Elwha River",
-"Dungeness_River" = "Dungeness River",
-"Skokomish_River" = "Skokomish River"))
-
-
-#Returns over time of all three rivers on one graph.
-annual_salmon_returns %>%
-ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
-geom_line() +
-geom_point() + 
-theme_classic() +
-labs(
-title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year")
-
-#Returns in each seperate river on seperate graphs stacked together.
-annual_salmon_returns %>%
-ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
-geom_line() +
-geom_point() +
-theme_classic() +
-labs(title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year") +
-facet_wrap(~ site_name, scales = "free_y", ncol = 1)
-
-
-```
-
-```{r}
-#Line graphs with updated data set. 
-
-aligned_data_clean <- aligned_data %>%
-mutate(site_name = recode(site_name,
-"Elwha_River" = "Elwha River",
-"Dungeness_River" = "Dungeness River",
-"Skokomish_River" = "Skokomish River"))
-
-
-#Returns over time of all three rivers on one graph.
-aligned_data_clean %>%
-ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
-geom_line() +
-geom_point() + 
-theme_classic() +
-labs(
-title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year") + 
-theme(legend.position = "bottom")
-
-#Returns in each seperate river on seperate graphs stacked together.
-aligned_data_clean %>%
-ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
-geom_line() +
-geom_point() +
-theme_classic() +
-labs(title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year") +
-facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
-theme(legend.position = "bottom")
-```
-
-```{r}
-#Mackenzie's attempt at statistics: 
-
-
-
-
-
-```
-
-
+#DO WE NEED THIS CHUNK???
 ```{r}
 # preliminary example of data surrounding a high returns year
 
