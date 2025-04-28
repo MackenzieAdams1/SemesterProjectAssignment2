@@ -27,6 +27,7 @@ library(DescTools) # for doing Mode statistical calc
 library(rstatix)
 library(midasr)
 library(ggiraphExtra)
+library(circlize)
 ```
 
 ```{r}
@@ -194,6 +195,14 @@ aligned_data <-
     "site_name" = "site_name",
     "waterYear" = "year"))
 
+aligned_data_clean <- 
+  aligned_data %>%
+  mutate(site_name = recode(site_name,
+                            "Elwha_River" = "Elwha River",
+                            "Dungeness_River" = "Dungeness River",
+                            "Skokomish_River" = "Skokomish River"))
+
+
 ```
 
 
@@ -216,44 +225,72 @@ q_gg <-
 q_gg_Skokomish <-
   aligned_data_clean %>%
   filter(site_name == "Skokomish River") %>%
-  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  ggplot(aes(x = Date, y = Flow)) +
   geom_line(color = "dodgerblue") + 
   theme_minimal() +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  labs( x = "Year", y = "Discharge (cfs)", title = "Skokomish River") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
-        legend.position = "none", )
+        legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
 
 #Shows river discharge over time for the Dungeness.
 q_gg_Dungeness <-
   aligned_data_clean %>%
   filter(site_name == "Dungeness River") %>%
-  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  ggplot(aes(x = Date, y = Flow)) +
   geom_line() + 
   theme_minimal() +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  labs( x = "Year", y = "Discharge (cfs)", title = "Dungeness River") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
-        legend.position = "none", )
+        legend.position = "none", 
+        plot.title = element_text(hjust = 0.5))
 
 #Shows river discharge over time for the Elwha.
 q_gg_Elwha <-
   aligned_data_clean %>%
   filter(site_name == "Elwha River") %>%
-  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  ggplot(aes(x = Date, y = Flow)) +
   geom_line(color = "limegreen") + 
   theme_minimal() +
-  facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Discharge (cfs)", color = "Gage") +
+  labs( x = "Year", y = "Discharge (cfs)", title = "Elwha River") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
-        legend.position = "none", )
+        legend.position = "none", 
+        plot.title = element_text(hjust = 0.5))
 ```
+
+```{r}
+# I know its easier to write seperate calls for each river but incase you were curious, heres it in 1 function
+
+lotta_g <-
+  function(f) {
+    f %>% 
+      ggplot(aes(x = Date, y = Flow)) +
+      geom_line(color = rand_color(1)) + 
+      theme_minimal() +
+      labs(x = "Year", y = "Discharge (cfs)") +
+      theme(strip.text = element_text(size = 12), 
+            axis.title.x = element_text(size = 14), 
+            axis.title.y = element_text(size = 14), 
+            legend.position = "none", )
+  }
+
+huuu <-
+  aligned_data_clean %>%
+  group_by(site_name) %>%
+  group_map(~ lotta_g(.))
+
+
+names(huuu) <- c("Dungeness", "Elwha", "Skokomish")
+
+
+```
+
 
 
 ```{r}
@@ -381,80 +418,75 @@ temp_gg_Skokomish <-
 ```{r}
 #Line graphs with updated data set. 
 
-aligned_data_clean <- aligned_data %>%
-mutate(site_name = recode(site_name,
-"Elwha_River" = "Elwha River",
-"Dungeness_River" = "Dungeness River",
-"Skokomish_River" = "Skokomish River"))
 
 
 #Returns over time of all three rivers on one graph.
 aligned_data_clean %>%
-ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
-geom_line() +
-geom_point() + 
-theme_classic() +
-labs(
-title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year") + 
-theme(legend.position = "bottom")
+  ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+  geom_line() +
+  geom_point() + 
+  theme_classic() +
+  labs(
+    title = "Salmon Abundance Over Time",
+    color = "Site",
+    y = "Salmon Return Abundance",
+    x = "Year") + 
+  theme(legend.position = "bottom")
 
 #Returns in each seperate river on seperate graphs stacked together.
 aligned_data_clean %>%
-ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
-geom_line() +
-geom_point() +
-theme_classic() +
-labs(title = "Salmon Abundance Over Time",
-color = "Site",
-y = "Salmon Return Abundance",
-x = "Year") +
-facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
-theme(legend.position = "bottom")
+  ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+  geom_line() +
+  geom_point() +
+  theme_classic() +
+  labs(title = "Salmon Abundance Over Time",
+       color = "Site",
+       y = "Salmon Return Abundance",
+       x = "Year") +
+  facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
+  theme(legend.position = "bottom")
 
 #Salmon returns over the years in the Skokomish
 SkokomishReturns <-
-aligned_data_clean %>%
- filter(site_name == "Skokomish River") %>%
- ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
- geom_line(color = "dodgerblue") +
- geom_point(color = "dodgerblue") +
- theme_classic() +
- labs(title = "Salmon Abundance Over Time",
- color = "Site",
- y = "Salmon Return Abundance",
- x = "Year") +
- theme(legend.position = "bottom")
+  aligned_data_clean %>%
+  filter(site_name == "Skokomish River") %>%
+  ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+  geom_line(color = "dodgerblue") +
+  geom_point(color = "dodgerblue") +
+  theme_classic() +
+  labs(title = "Salmon Abundance Over Time",
+       color = "Site",
+       y = "Salmon Return Abundance",
+       x = "Year") +
+  theme(legend.position = "bottom")
 
 #Salmon returns over the years in the Elwha
 ElwhaReturns <-
-aligned_data_clean %>%
- filter(site_name == "Elwha River") %>%
- ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
- geom_line(color = "limegreen") +
- geom_point(color = "limegreen") +
- theme_classic() +
- labs(title = "Salmon Abundance Over Time",
- color = "Site",
- y = "Salmon Return Abundance",
- x = "Year") +
- theme(legend.position = "bottom")
+  aligned_data_clean %>%
+  filter(site_name == "Elwha River") %>%
+  ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+  geom_line(color = "limegreen") +
+  geom_point(color = "limegreen") +
+  theme_classic() +
+  labs(title = "Salmon Abundance Over Time",
+       color = "Site",
+       y = "Salmon Return Abundance",
+       x = "Year") +
+  theme(legend.position = "bottom")
 
 #Salmon returns over the years in the Dungeness
 DungenessReturns <-
-aligned_data_clean %>%
- filter(site_name == "Dungeness River") %>%
- ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
- geom_line() +
- geom_point() +
- theme_classic() +
- labs(title = "Salmon Abundance Over Time",
- color = "Site",
- y = "Salmon Return Abundance",
- x = "Year") +
- theme(legend.position = "bottom")
+  aligned_data_clean %>%
+  filter(site_name == "Dungeness River") %>%
+  ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
+  geom_line() +
+  geom_point() +
+  theme_classic() +
+  labs(title = "Salmon Abundance Over Time",
+       color = "Site",
+       y = "Salmon Return Abundance",
+       x = "Year") +
+  theme(legend.position = "bottom")
 
 ```
 
@@ -1035,6 +1067,11 @@ dungeness_julian <-
     ),
     .) %>%
   arrange(Date_lead)
+
+
+gage_fish_lead %>% 
+  mutate(day = Day(Date_lead),
+         month = month(Date))
 
 
 # attempting to do it to all sites
