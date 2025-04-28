@@ -778,14 +778,6 @@ aligned_data_clean %>%
  theme(legend.position = "bottom")
 ```
 
-```{r}
-#Creating graphs Tim asked for 
-
-
-
-```
-
-
 
 ```{r}
 # Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
