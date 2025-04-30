@@ -29,7 +29,8 @@ library(midasr)
 library(ggiraphExtra)
 library(circlize)
 library(ggpmisc)
-library(gganimate)
+library(grid)
+library(gridExtra)
 ```
 
 ```{r}
@@ -403,7 +404,7 @@ temp_gg_Elwha <-
         axis.title.y = element_text(size = 14), 
         legend.position = "none",)
 
-#Plot of precipitation over the years for the Elwha. 
+#Plot of precipitation over the years for the Skokomish. 
 temp_gg_Skokomish <-
   aligned_data_clean %>%
   filter(site_name == "Skokomish River") %>%
@@ -423,8 +424,6 @@ temp_gg_Skokomish <-
 ```{r}
 #Line graphs with updated data set. 
 
-
-
 #Returns over time of all three rivers on one graph.
 aligned_data_clean %>%
   ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
@@ -436,7 +435,8 @@ aligned_data_clean %>%
     color = "Site",
     y = "Salmon Return Abundance",
     x = "Year") + 
-  theme(legend.position = "bottom")
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 12))
+
 
 #Returns in each seperate river on seperate graphs stacked together.
 aligned_data_clean %>%
@@ -449,7 +449,9 @@ aligned_data_clean %>%
        y = "Salmon Return Abundance",
        x = "Year") +
   facet_wrap(~ site_name, scales = "free_y", ncol = 1) + 
-  theme(legend.position = "bottom")
+  theme(axis.title = element_text(size = 12),
+axis.text = element_text(size = 12))
+
 
 #Salmon returns over the years in the Skokomish
 SkokomishReturns <-
@@ -459,11 +461,13 @@ SkokomishReturns <-
   geom_line(color = "dodgerblue") +
   geom_point(color = "dodgerblue") +
   theme_classic() +
-  labs(title = "Salmon Abundance Over Time",
+  labs(
        color = "Site",
        y = "Salmon Return Abundance",
-       x = "Year") +
-  theme(legend.position = "bottom")
+       x = "") +
+  theme(axis.title = element_text(size = 12),
+axis.text = element_text(size = 12))
+
 
 #Salmon returns over the years in the Elwha
 ElwhaReturns <-
@@ -473,25 +477,27 @@ ElwhaReturns <-
   geom_line(color = "limegreen") +
   geom_point(color = "limegreen") +
   theme_classic() +
-  labs(title = "Salmon Abundance Over Time",
+  labs(
        color = "Site",
        y = "Salmon Return Abundance",
-       x = "Year") +
-  theme(legend.position = "bottom")
+       x = "") +
+  theme(axis.title = element_text(size = 12),
+axis.text = element_text(size = 12))
 
 #Salmon returns over the years in the Dungeness
 DungenessReturns <-
   aligned_data_clean %>%
   filter(site_name == "Dungeness River") %>%
   ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
-  geom_line() +
-  geom_point() +
+  geom_line(color = "salmon") +
+  geom_point(color = "salmon") +
   theme_classic() +
-  labs(title = "Salmon Abundance Over Time",
+  labs(
        color = "Site",
        y = "Salmon Return Abundance",
-       x = "Year") +
-  theme(legend.position = "bottom")
+       x = "") +
+  theme(axis.title = element_text(size = 12),
+axis.text = element_text(size = 12))
 
 ```
 
@@ -644,132 +650,6 @@ DischargeandReturns_2 <-
 
 ```
 
-
-```{r}
-#none of these work quite right yet. But they are trying to plot temperature against salmon returns
-
-TemperatureandReturns_2 <-
-  aligned_data %>%
-  filter(Date < "2023-10-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
-  facet_wrap(~ site_name, 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns_2, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_qty), 
-             color = "black", 
-             size = .75) + 
-  scale_y_continuous(name = "Average Temperature (C)", sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
-  theme_minimal() +
-  theme(
- axis.title.y.right = element_text(color = "black"),
- legend.position = "bottom", # Position legend at the bottom
- legend.title = element_text(face = "bold") # Bold legend title
- ) +
- labs(color = "Site Name")
-
-
-TemperatureandReturns_2 <-
-  aligned_data %>%
-  filter(Date < "2023-10-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
-  facet_wrap(~ site_name, 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns_2, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_qty), 
-             color = "black", 
-             size = .75) + 
-  scale_y_continuous(name = "Average Temperature (C)", limits = c(-10,40), sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
-  theme_minimal() +
-  theme(
- axis.title.y.right = element_text(color = "black"),
- legend.position = "bottom", # Position legend at the bottom
- legend.title = element_text(face = "bold") # Bold legend title
- ) +
- labs(color = "Site Name")
-
-
-TemperatureandReturns_2 <-
-  aligned_data %>%
-  filter(Date < "2023-10-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date, y = t_avg_C, color = site_name)) +
-  facet_wrap(~ site_name, 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns_2, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_qty), 
-             color = "black", 
-             size = .75) + 
-  scale_y_continuous(name = "Average Temperature (C)", limits = c(-10, 40), sec.axis = sec_axis(~ . * 5, name = "Salmon Return Abundance")) + 
-  theme_minimal() +
-  theme(
- axis.title.y.right = element_text(color = "black"),
- legend.position = "bottom", # Position legend at the bottom
- legend.title = element_text(face = "bold") # Bold legend title
- ) +
- labs(color = "Site Name")
-```
-
-```{r}
-#These show precipitation vs. fish data but also have some graphing errors.
-
-
-PrecipitationeandReturns_2 <-
-  aligned_data %>%
-  filter(Date < "2023-10-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
-  facet_wrap(~ site_name, 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns_2, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_qty), 
-             color = "black", 
-             size = .75) + 
-  scale_y_continuous(name = "Daily Precipitation (mm)", sec.axis = sec_axis(~ ., name = "Salmon Return Abundance")) + 
-  theme_minimal() +
-  theme(
- axis.title.y.right = element_text(color = "black"),
- legend.position = "bottom", # Position legend at the bottom
- legend.title = element_text(face = "bold") # Bold legend title
- ) +
- labs(color = "Site Name")
-
-PrecipitationeandReturns_2 <-
-  aligned_data %>%
-  filter(Date < "2023-10-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date, y = prcp_daily_mm, color = site_name)) +
-  facet_wrap(~ site_name, 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns_2, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_qty), 
-             color = "black", 
-             size = .75) + 
-  scale_y_continuous(name = "Daily Precipitation (mm)", limits = c(0, 200), sec.axis = sec_axis(~ . * 5, name = "Salmon Return Abundance")) + 
-  theme_minimal() +
-  theme(
- axis.title.y.right = element_text(color = "black"),
- legend.position = "bottom", # Position legend at the bottom
- legend.title = element_text(face = "bold") # Bold legend title
- ) +
- labs(color = "Site Name")
-
-
-
-```
-
-
 ```{r}
 #This code creates some stats about our aligned data.
 
@@ -799,22 +679,274 @@ aligned_data_stats <-
 ```
 
 ```{r}
-#MinQ, MaxQ, MedianQ
+#Creating three separate graphs of the Median Q values across the time series for the three rivers of interest. 
 
-DungenessReturns <-
-aligned_data_clean %>%
+DungenessMedianQ <-
+aligned_data_stats %>%
  filter(site_name == "Dungeness River") %>%
- ggplot(aes(x = waterYear, y = abundance_qty, color = site_name)) +
- geom_line() +
- geom_point() +
+ ggplot(aes(x = waterYear, y = Flow_median, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
  theme_classic() +
- labs(title = "Salmon Abundance Over Time",
- color = "Site",
- y = "Salmon Return Abundance",
- x = "Year") +
- theme(legend.position = "bottom")
+ labs(color = "Site",
+ y = "Median Discharge (cfs)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+
+ElwhaMedianQ <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = Flow_median, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Median Discharge (cfs)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMedianQ <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = Flow_median, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Median Discharge (cfs)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+ 
+
+#Creating three separate graphs of the MaxQ values across the time series for the three rivers of interest. 
+
+DungenessMaxQ <-
+aligned_data_stats %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = Flow_max, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+ElwhaMaxQ <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = Flow_max, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMaxQ <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = Flow_max, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+#Creating three separate graphs of the Minimum Q values across the time series for the three rivers of interest.
+
+DungenessMinQ <-
+aligned_data_stats %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = Flow_min, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+ElwhaMinQ <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = Flow_min, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMinQ <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = Flow_min, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Discharge (cfs)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+#stacking the graphs 
+
+SkokomishDischarge <- grid.arrange(SkokomishMinQ, SkokomishMaxQ, SkokomishMedianQ, ncol = 1, top = textGrob("Skokomish River Discharge Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+ElwhaDischarge <- grid.arrange(ElwhaMinQ, ElwhaMaxQ, ElwhaMedianQ, ncol = 1, top = textGrob("Elwha River Discharge Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+DungenessDischarge <- grid.arrange(DungenessMinQ, DungenessMaxQ, DungenessMedianQ, ncol = 1, top = textGrob("Dungeness River Discharge Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+#stacking these with salmon graphs
+
+SkokomishTrends <- grid.arrange(SkokomishReturns, SkokomishMinQ, SkokomishMaxQ, SkokomishMedianQ, ncol = 1, top = textGrob("Skokomish Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+DungenessTrends <- grid.arrange(DungenessReturns, DungenessMinQ, DungenessMaxQ, DungenessMedianQ, ncol = 1, top = textGrob("Dungeness Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+ElwhaTrends <- grid.arrange(ElwhaReturns, ElwhaMinQ, ElwhaMaxQ, ElwhaMedianQ, ncol = 1, top = textGrob("Elwha Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+
 ```
 
+```{r}
+#Creating three separate graphs of the Median Temp values across the time series for the three rivers of interest. 
+
+DungenessMedianTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_median, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Median Temperature (C)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+
+ElwhaMedianTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_median, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Median Temperature (C)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMedianTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_median, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Median Temperature (C)",
+ x = "Year") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+ 
+
+#Creating three separate graphs of the Max Temperature values across the time series for the three rivers of interest. 
+
+DungenessMaxTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_max, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+ElwhaMaxTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_max, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMaxTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_max, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Max Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+#Creating three separate graphs of the Minimum Q values across the time series for the three rivers of interest.
+
+DungenessMinTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Dungeness River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_min, color = site_name)) +
+ geom_line(show.legend = FALSE) +
+ geom_point(show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+ElwhaMinTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Elwha River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_min, color = site_name)) +
+ geom_line(color = "limegreen", show.legend = FALSE) +
+ geom_point(color = "limegreen", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+SkokomishMinTemp <-
+aligned_data_stats %>%
+ filter(site_name == "Skokomish River") %>%
+ ggplot(aes(x = waterYear, y = t_ann_min, color = site_name)) +
+ geom_line(color = "dodgerblue", show.legend = FALSE) +
+ geom_point(color = "dodgerblue", show.legend = FALSE) +
+ theme_classic() +
+ labs(color = "Site",
+ y = "Minimum Temperature (C)",
+ x = "") + theme(axis.title = element_text(size = 12),
+ axis.text = element_text(size = 12))
+
+#stacking the graphs 
+
+SkokomishTemperature <- grid.arrange(SkokomishMinTemp, SkokomishMaxTemp, SkokomishMedianTemp, ncol = 1, top = textGrob("Skokomish River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+ElwhaTemperature <- grid.arrange(ElwhaMinTemp, ElwhaMaxTemp, ElwhaMedianTemp, ncol = 1, top = textGrob("Elwha River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+DungenessTemperature <- grid.arrange(DungenessMinTemp, DungenessMaxTemp, DungenessMedianQTemp, ncol = 1, top = textGrob("Dungeness River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+#stacking these with salmon graphs
+
+SkokomishTrendsTemp <- grid.arrange(SkokomishReturns, SkokomishMinTemp, SkokomishMaxTemp, SkokomishMedianTemp, ncol = 1, top = textGrob("Skokomish Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+DungenessTrendsTemp <- grid.arrange(DungenessReturns, DungenessMinTemp, DungenessMaxTemp, DungenessMedianTemp, ncol = 1, top = textGrob("Dungeness Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+
+ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinQ, ElwhaMaxQ, ElwhaMedianQ, ncol = 1, top = textGrob("Elwha Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+```
 
 ```{r}
 # Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
