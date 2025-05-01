@@ -163,14 +163,6 @@ gage_fish_all <-
   )
   )
 
-# Make an offset df so that returns line up with the climate year they spawned in
-gage_fish_lead <-
-  gage_fish_all %>%
-  group_by(site_name) %>% 
-  mutate(abundance_lead = lead(abundance_qty, 365*4),
-         Date_lead = Date + years(4),
-         ann_lead = year(Date_lead)
-         )
 ```
 
 
@@ -269,34 +261,6 @@ q_gg_Elwha <-
         legend.position = "none", 
         plot.title = element_text(hjust = 0.5))
 ```
-
-```{r}
-# I know its easier to write seperate calls for each river but incase you were curious, heres it in 1 function
-
-lotta_g <-
-  function(f) {
-    f %>% 
-      ggplot(aes(x = Date, y = Flow)) +
-      geom_line(color = rand_color(1)) + 
-      theme_minimal() +
-      labs(x = "Year", y = "Discharge (cfs)") +
-      theme(strip.text = element_text(size = 12), 
-            axis.title.x = element_text(size = 14), 
-            axis.title.y = element_text(size = 14), 
-            legend.position = "none", )
-  }
-
-huuu <-
-  aligned_data_clean %>%
-  group_by(site_name) %>%
-  group_map(~ lotta_g(.))
-
-
-names(huuu) <- c("Dungeness", "Elwha", "Skokomish")
-
-
-```
-
 
 
 ```{r}
@@ -520,106 +484,6 @@ DungenessReturns + q_gg_Dungeness + prcp_gg_Dungeness + temp_gg_Dungeness
 
 ElwhaReturns + q_gg_Elwha + prcp_gg_Elwha + temp_gg_Elwha
 
-```
-
-
-#DO WE NEED THIS CHUNK?
-```{r}
-# lead the data so climate matches with returns, and some basic stats
-
-gage_fish_lead %>%
-  group_by(site_name, ann) %>%
-  reframe(abd_qty_lead = Mode(abundance_lead), Flow = mean(Flow))  %>%
-  ggplot(aes(x = abd_qty_lead, y = Flow, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm")
-
-
-fish_aov <- gage_fish_lead %>% 
-  anova_test(abundance_lead ~ Flow*prcp_daily_mm*t_avg_C)
-
-
-
-gage_fish_lead %>%
-  ggplot(aes(x = abundance_lead, y = Flow, color = site_name)) +
-  geom_line() + geom_point()
-
-```
-
-#DO WE NEED THIS CHUNK? CHECK THE CHUNK BELOW I THINK I DID ALL THE SAME WITH THE UPDATED DATA
-```{r}
-
-# Calculate the average and std dev of returns for each stream
-
-abundance_stats <- 
-  gage_fish_lead %>%
-  ungroup() %>%
-  summarise(return_avg = round(mean(abundance_lead, na.rm = T)), 
-            return_sd = round(sd(abundance_lead, na.rm = T)), 
-            .by = site_name)
-
-
-# Creating a chart with annual return as a single point while still keeping annual data for everything   else
-
-annual_salmon_returns <-
-  gage_fish_lead %>%
-  group_by(site_name, ann) %>%
-  reframe(
-    abundance_lead = Mode(abundance_lead, na.rm = TRUE), 
-    ann = make_date(
-      year = Mode(ann_lead), 
-      month = 10, 
-      day = 1),
-    high_flow = max(Flow)
-  ) %>% 
-  left_join(abundance_stats, by = "site_name") %>%
-  mutate(outlier = (abundance_lead > return_avg + return_sd | abundance_lead < return_avg - return_sd)) # checks if a given year is outside of 1 sd
-
-DischargeandReturns <-
-  gage_fish_lead %>%
-  filter(Date_lead < "2023-10-01") %>%
-  ggplot(aes(x = Date_lead, y = Flow, color = site_name)) +
-  geom_line() +
-  facet_wrap(facets = "site_name", 
-             nrow = 3, 
-             scales = "free") +
-  geom_point(data = annual_salmon_returns, 
-             aes(x = as.POSIXct(ann), 
-                 y = abundance_lead), 
-             color = "black", 
-             size = .75) 
-
-```
-
-#DO WE NEED THESE TWO CHUNKS? WHAT DO THEY DO? DO THEY GET USED AGAIN?
-```{r}
-# Above code using new data frame to make it more accurate
-
-# Calculate the average and std dev of returns for each stream
-
-abundance_stats_2 <- 
-  aligned_data %>%
-  ungroup() %>%
-  summarise(return_avg = round(mean(abundance_qty, na.rm = T)), 
-            return_sd = round(sd(abundance_qty, na.rm = T)), 
-            .by = site_name)
-
-
-# Creating a chart with annual return as a single point while still keeping annual data for everything   else
-
-annual_salmon_returns_2 <-
-  aligned_data %>%
-  group_by(site_name, waterYear) %>%
-  reframe(
-    abundance_qty = Mode(abundance_qty, na.rm = TRUE), 
-    ann = make_date(
-      year = Mode(waterYear), 
-      month = 10, 
-      day = 1),
-    high_flow = max(Flow)
-  ) %>% 
-  left_join(abundance_stats_2, by = "site_name") %>%
-  mutate(outlier = (abundance_qty > return_avg + return_sd | abundance_qty < return_avg - return_sd)) # checks if a given year is outside of 1 sd
 ```
 
 
@@ -937,7 +801,7 @@ SkokomishTemperature <- grid.arrange(SkokomishMinTemp, SkokomishMaxTemp, Skokomi
 
 ElwhaTemperature <- grid.arrange(ElwhaMinTemp, ElwhaMaxTemp, ElwhaMedianTemp, ncol = 1, top = textGrob("Elwha River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
 
-DungenessTemperature <- grid.arrange(DungenessMinTemp, DungenessMaxTemp, DungenessMedianQTemp, ncol = 1, top = textGrob("Dungeness River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+DungenessTemperature <- grid.arrange(DungenessMinTemp, DungenessMaxTemp, DungenessMedianTemp, ncol = 1, top = textGrob("Dungeness River Temperature Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
 
 #stacking these with salmon graphs
 
@@ -948,37 +812,66 @@ DungenessTrendsTemp <- grid.arrange(DungenessReturns, DungenessMinTemp, Dungenes
 ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinTemp, ElwhaMaxTemp, ElwhaMedianTemp, ncol = 1, top = textGrob("Elwha Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
 ```
 
+
+
+```{r}
+
+
+#attempt to resolve eq plotting issues
+aligned_data_stats_reg <- aligned_data_stats %>%
+  group_by(site_name) %>%
+  mutate(
+    label.x = min(t_ann_min) + 0.05 * (max(t_ann_min) - min(t_ann_min)),
+    label.y = max(abundance_qty) - 0.05 * (max(abundance_qty) - min(abundance_qty))
+  )
+
+
+# This one actually makes the good plot
+aligned_data_stats_reg %>%
+  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  facet_wrap(~site_name, nrow = 3, scales = "free") +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(
+    aes(label.x = label.x, label.y = label.y,
+        label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+    size = 4,
+    hjust = 0
+  ) +
+  labs(
+    x = "Maximum Flow (cfs)",
+    y = "Abundance Quantity"
+  ) +
+  theme(legend.position="none")
+
+
+```
+
+
+
+
 ```{r}
 # Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
 
-fish_mlr_max <-
-  aligned_data_stats %>%
-  lm(abundance_qty ~ Flow_max + t_ann_max + prcp_max, .) %>%
-  summary()
-
-fish_mlr_min <-
-  aligned_data_stats %>%
-  lm(abundance_qty ~ Flow_min + t_ann_min + prcp_min, .)
-
-lapply(fish_mlr_min, summary)
-
-fish_mlr_wcs <-
+#
+fish_lr <-
   aligned_data_stats %>%
   group_by(site_name) %>%
   group_map(~ lm(abundance_qty ~ Flow_max, data = .))
 
-fish_mlr_wcs_summ <-
-  lapply(fish_mlr_wcs, summary) 
+fish_lr_summ <-
+  lapply(fish_lr, summary) 
 
-names(fish_mlr_wcs_summ) <- c("Dunguness River", "Elwha River", "Skokomish River")
+names(fish_lr_summ) <- c("Dunguness River", "Elwha River", "Skokomish River")
 
-wcs_pvals <-
-  lapply(fish_mlr_wcs_summ, function(s) {
+fish_pvals <-
+  lapply(fish_lr_summ, function(s) {
   coef(s)[,4]
 })
 
-
 ```
+
+
 
 ```{r}
 #Creating linear regression plots
@@ -1034,21 +927,6 @@ aligned_data_stats %>%
  legend.position = "bottom"
  ) 
 
-#without equation displayed
-aligned_data_stats %>%
-  ggplot(aes(x = Flow_min, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
-  labs(
- color = "site name",
- x = "Minimum Annual Discharge (cfs)",
- y = "Salmon Return Abundance"
- ) +
- theme_minimal() +
- theme(
- legend.position = "bottom"
- )
 
 #with equation displayed
 aligned_data_stats %>%
@@ -1060,22 +938,6 @@ aligned_data_stats %>%
   labs(
  color = "site name",
  x = "Minimum Annual Discharge (cfs)",
- y = "Salmon Return Abundance"
- ) +
- theme_minimal() +
- theme(
- legend.position = "bottom"
- )
-
-#without equation displayed
-aligned_data_stats %>%
-  ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
-  labs(
- color = "site name",
- x = "Annual Minimum Temperature (C)",
  y = "Salmon Return Abundance"
  ) +
  theme_minimal() +
@@ -1100,7 +962,7 @@ aligned_data_stats %>%
  legend.position = "bottom"
  )
 
-#without equation displayed
+#with equation displayed
 aligned_data_stats %>%
   ggplot(aes(x = t_ann_max, y = abundance_qty, color = site_name)) +
   geom_point() +
@@ -1117,74 +979,30 @@ aligned_data_stats %>%
  legend.position = "bottom"
  )
 
-#with equation displayed
-aligned_data_stats %>%
-  ggplot(aes(x = t_ann_max, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(facet = "site_name", nrow = 3, scale = "free") + 
-  labs(
- color = "site name",
- x = "Annual Max Temperature (C)",
- y = "Salmon Return Abundance"
- ) +
- theme_minimal() +
- theme(
- legend.position = "bottom"
- )
-
-#!!!!I cant get this to work on my end!!!!! breaks at the 2nd chunk
-summary(fish_mlr_wcs)
-
-ggPredict(fish_mlr_wcs, interactive = T)
-
-fish_mlr_dung_wcs <-
-  aligned_data_stats %>%
-  filter(site_name == "Dungeness_River") %>%
-  lm(abundance_qty ~ Flow_min + t_ann_max, .) %>%
-  summary()
 ```
 
 
-#DO WE NEED THIS CHUNK???
-```{r}
-# preliminary example of data surrounding a high returns year
 
-gage_fish_lead %>%
-  filter(site_name == "Dungeness_River", Date_lead >= "2006-08-01" & Date_lead < "2007-06-01") %>%
-  ggplot(aes(x = Date_lead, y = Flow)) +
-  geom_line(color = "blue")
-  
-```
 
 ```{r}
-# plot all of the different salmon returns 
-annual_salmon_returns %>%
-  ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
-  geom_line() +
-  facet_wrap(~ site_name, nrow = 3, scale = "free")
 
 
-# Create a function and a loop that creates a ggplot object for when abundance is outside of sd
-outlier_plotter <-
-  function (f) {
-    if (f$outlier == TRUE) {
-      print("she works")
-    }else {
-      print("she dont work")
-    }
-  }
+# Leaded data for fish. this is wrong, but we left the code in as we presented on it and wanted it to be viewable
 
+gage_fish_lead <-
+  gage_fish_all %>%
+  group_by(site_name) %>%
+  mutate(abundance_lead = lead(abundance_qty, 365*4),
+         Date_lead = Date + years(4),
+         ann_lead = year(Date_lead)
+         )
 
-annual_salmon_returns %>%
-  filter(site_name == "Dungeness_River") %>%
-  ggplot(aes(x = ann, y = abundance_lead, color = site_name)) +
-  geom_line() +
-  geom_point() 
-
+# Create a dungeness subset for efficient testing
 Dungeness_data <-
   gage_fish_lead %>%
   filter(site_name == "Dungeness_River")
+
+
 
 
 # uses some temp columns to create filtered data. 
@@ -1200,7 +1018,7 @@ dungeness_julian <-
          fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
   ) %>%
   filter(!(between(fake_julian, 151, 211))) %>%
-  bind_rows(                                    #re-add the eariler filtered rows 
+  bind_rows(                                    #re-add the earlier filtered rows 
     (filter(
       Dungeness_data, year(Date_lead) < 1987)
     ),
@@ -1212,10 +1030,6 @@ dungeness_julian <-
     .) %>%
   arrange(Date_lead)
 
-
-gage_fish_lead %>% 
-  mutate(day = Day(Date_lead),
-         month = month(Date))
 
 
 # attempting to do it to all sites
@@ -1279,100 +1093,11 @@ gage_fish_lead %>%
   group_by(site_name) %>%
   group_map(~ migration_filter(.x))
 
-
-where_fucked <-
-  function(g) {
-    g %>%
-      group_by(site_no) %>%
-      summarize(length = length(Date),
-                sum_na = sum(is.na(Flow))
-      )
-  }
-
-migration_filter(aligned_data)
-
-piss <-
-  readRDS("./NWIS_data.rdata") %>%
-  renameNWISColumns() %>%
-  view()
-
-where_fucked(piss)
-
-where_fucked(gage_fish_lead)
-
-where_fucked(aligned_data)
-
-
-
 ```
 
 
 ```{r}
-
-# create a df thats just dungeness align data for easy testing. Remove once function works on full df
-dungeness_align <-
-  aligned_data %>%
-  filter(site_name == "Dungeness_River")
-
-
-# create a migration filter that works with the aligned_data df
-migration_filter_align <-
-  function(f) {
-    f %>%
-      filter(waterYear != 1986) %>%   #remove these rows bc theyre less than 365 days and that breaks things
-      group_by(waterYear) %>%
-      mutate(fake_dates = seq(ymd('1970-01-01'),
-                              ymd('1970-12-31'), 
-                              by = '1 day'),
-             fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
-      ) }
-    
-  #   %>%
-  #     filter(!(between(fake_julian, 151, 211))) %>%
-  #     bind_rows(                                    #re-add the eariler filtered rows 
-  #       (filter(
-  #         f, 
-  #         year(Date_lead) < 1987)),
-  #       .) %>%
-  #     bind_rows(
-  #       filter(
-  #         f, 
-  #         between(Date_lead, ymd("2027-01-01"), ymd("2027-05-31")) |
-  #         ymd(Date_lead) > ymd("2027-07-31")),
-  #       .) %>%
-  #     arrange(Date_lead)
-  # }
-  # 
-
-migration_filter_align(dungeness_align) %>%
-  view()
-
-
-dungeness_align %>%
-  filter(waterYear == 2005) %>%
-  view()
-
-
-
-dungeness_align %>%
-  group_by(waterYear) %>%
-  nrow()
-
-group_map(why,nrow, ...)
-
-
-dungeness_align %>%
-  filter(waterYear == 1992) %>%
-  group_by(Date) %>%
-  filter(n() > 1) %>%
-  distinct(Date) %>%
-  pull(Date) 
-
-
-
-```
-
-```{r}
+# Visualizing Skokomish flow codes
 
 gage_fish_all %>%
   filter(site_name == "Skokomish_River") %>%
@@ -1395,73 +1120,8 @@ ggsave("skoko_cd code.jpeg")
 
 ```
 
-#Animated Graph
-```{r}
-gage_fish_all %>%
-  ggplot(aes(x = Date, y = Flow, color = site_name)) +
-  geom_line() +
-  facet_wrap(~ site_name, nrow = 3) +
-  transition_manual(ann) +
-  labs(title = "Year: {frame_time}")
-  
-  
-
-```
-
-
-```{r}
-midas_r()
-
-
-```
 
 #Linear Regression with r^2 and regression eq
-```{r}
-
-
-#attempt to resolve eq plotting issues
-aligned_data_stats_reg <- aligned_data_stats %>%
-  group_by(site_name) %>%
-  mutate(
-    label.x = min(t_ann_min) + 0.05 * (max(t_ann_min) - min(t_ann_min)),
-    label.y = max(abundance_qty) - 0.05 * (max(abundance_qty) - min(abundance_qty))
-  )
-
-
-
-
-# This one actually makes the good plot
-aligned_data_stats_reg %>%
-  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  facet_wrap(~site_name, nrow = 3, scales = "free") +
-  geom_smooth(method = "lm") +
-  stat_regline_equation(
-    aes(label.x = label.x, label.y = label.y,
-        label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    size = 4,
-    hjust = 0
-  ) +
-  labs(
-    x = "Maximum Flow (cfs)",
-    y = "Abundance Quantity"
-  ) +
-  theme(legend.position="none")
-
-
-aligned_data_stats %>%
-  ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  facet_wrap(~ site_name, nrow = 3, scales = "free") +
-  geom_smooth(method = "lm") +
-  stat_regline_equation(
-    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    size = 4,
-    hjust = 0
-  )
-
-
-```
 
 ```{r}
 df <- gage_fish_all %>%
