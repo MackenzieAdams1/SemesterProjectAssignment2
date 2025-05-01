@@ -942,7 +942,7 @@ SkokomishTrendsTemp <- grid.arrange(SkokomishReturns, SkokomishMinTemp, Skokomis
 
 DungenessTrendsTemp <- grid.arrange(DungenessReturns, DungenessMinTemp, DungenessMaxTemp, DungenessMedianTemp, ncol = 1, top = textGrob("Dungeness Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
 
-ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinQ, ElwhaMaxQ, ElwhaMedianQ, ncol = 1, top = textGrob("Elwha Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
+ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinTemp, ElwhaMaxTemp, ElwhaMedianTemp, ncol = 1, top = textGrob("Elwha Analysis", gp = gpar(fontsize = 16, fontface = "bold")))
 ```
 
 ```{r}
