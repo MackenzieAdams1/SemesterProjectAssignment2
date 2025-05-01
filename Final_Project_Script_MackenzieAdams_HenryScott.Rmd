@@ -31,6 +31,7 @@ library(circlize)
 library(ggpmisc)
 library(grid)
 library(gridExtra)
+library(gganimate)
 ```
 
 ```{r}
@@ -814,38 +815,7 @@ ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinTemp, ElwhaMaxTemp, ElwhaM
 
 
 
-```{r}
 
-
-#attempt to resolve eq plotting issues
-aligned_data_stats_reg <- aligned_data_stats %>%
-  group_by(site_name) %>%
-  mutate(
-    label.x = min(t_ann_min) + 0.05 * (max(t_ann_min) - min(t_ann_min)),
-    label.y = max(abundance_qty) - 0.05 * (max(abundance_qty) - min(abundance_qty))
-  )
-
-
-# This one actually makes the good plot
-aligned_data_stats_reg %>%
-  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
-  geom_point() +
-  facet_wrap(~site_name, nrow = 3, scales = "free") +
-  geom_smooth(method = "lm") +
-  stat_regline_equation(
-    aes(label.x = label.x, label.y = label.y,
-        label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    size = 4,
-    hjust = 0
-  ) +
-  labs(
-    x = "Maximum Flow (cfs)",
-    y = "Abundance Quantity"
-  ) +
-  theme(legend.position="none")
-
-
-```
 
 
 
@@ -982,10 +952,43 @@ aligned_data_stats %>%
 ```
 
 
+```{r}
+# Creating the returns v max cfs plot with an attempt at fixing positions
+
+
+#attempt to resolve eq plotting issues
+aligned_data_stats_reg <- aligned_data_stats %>%
+  group_by(site_name) %>%
+  mutate(
+    label.x = min(t_ann_min) + 0.05 * (max(t_ann_min) - min(t_ann_min)),
+    label.y = max(abundance_qty) - 0.05 * (max(abundance_qty) - min(abundance_qty))
+  )
+
+
+# This one actually makes the good plot
+aligned_data_stats_reg %>%
+  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  facet_wrap(~site_name, nrow = 3, scales = "free") +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(
+    aes(label.x = label.x, label.y = label.y,
+        label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+    size = 4,
+    hjust = 0
+  ) +
+  labs(
+    x = "Maximum Flow (cfs)",
+    y = "Abundance Quantity"
+  ) +
+  theme(legend.position="none")
+
+
+```
+
 
 
 ```{r}
-
 
 # Leaded data for fish. this is wrong, but we left the code in as we presented on it and wanted it to be viewable
 
@@ -1124,7 +1127,7 @@ ggsave("skoko_cd code.jpeg")
 #Linear Regression with r^2 and regression eq
 
 ```{r}
-df <- gage_fish_all %>%
+anim_fish_all_df <- gage_fish_all %>%
   mutate(
     year = year(Date),
     month_day = as.Date(format(Date, "2000-%m-%d")),  # Rebase all dates to year 2000
@@ -1132,7 +1135,7 @@ df <- gage_fish_all %>%
   )
 
 
-p <- ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
+flow_anim <- ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
   geom_line() +
   scale_x_date(date_breaks = "1 month", date_labels = "%b", limits = as.Date(c("2000-01-01", "2000-12-31"))) +
   theme_minimal() +
@@ -1141,7 +1144,7 @@ p <- ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
        color = "Site name") +
   transition_manual(year)
 
-animate(p, width = 800, height = 400, fps = 5)
+animate(flow_anim, width = 800, height = 400, fps = 5)
 
 ```
 
