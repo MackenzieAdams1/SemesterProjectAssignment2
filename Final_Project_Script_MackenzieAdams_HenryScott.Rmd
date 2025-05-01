@@ -73,6 +73,9 @@ gage_data <-
   mutate(water_year = calcWaterYear(Date)) %>%
   group_by(site_name, site_no)
 
+gage_data %>%
+  group_by(site_name) %>%
+  summarise(n = n())
 
 # Shows all unique grouped elements in gage_data. Verifies that all the desired gages were selected and are in the data frame.
 
@@ -365,7 +368,7 @@ temp_gg <-
   geom_line() + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  labs( x = "Year", y = "Temperature (C)", color = "Gage") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
@@ -380,7 +383,7 @@ temp_gg_Dungeness <-
   geom_line() + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  labs( x = "Year", y = "Temperature (C)", color = "Gage") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
@@ -395,7 +398,7 @@ temp_gg_Elwha <-
   geom_line(color = "limegreen") + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  labs( x = "Year", y = "Temperature (C)", color = "Gage") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
@@ -409,7 +412,7 @@ temp_gg_Skokomish <-
   geom_line(color = "dodgerblue") + 
   theme_minimal() +
   facet_wrap(~ gsub("_", " ", site_name), nrow = 3, scales = "free") +
-  labs( x = "Year", y = "Temperature (C))", color = "Gage") +
+  labs( x = "Year", y = "Temperature (C)", color = "Gage") +
   theme(strip.text = element_text(size = 12), 
         axis.title.x = element_text(size = 14), 
         axis.title.y = element_text(size = 14), 
@@ -651,27 +654,27 @@ DischargeandReturns_2 <-
 #This code creates some stats about our aligned data.
 
 aligned_data_stats <-
- aligned_data %>%
- filter(waterYear != 1986) %>%
- mutate(site_name = case_when(
-site_name == "Dungeness_River" ~ "Dungeness River",
- site_name == "Elwha_River" ~ "Elwha River",
- site_name == "Skokomish_River" ~ "Skokomish River",
- TRUE ~ site_name
- )) %>%
- group_by(site_name, waterYear) %>%
- reframe(
- abundance_qty = Mode(abundance_qty),
- Flow_median = median(Flow, na.rm = TRUE),
- Flow_max = max(Flow, na.rm = TRUE),
- Flow_min = min(Flow, na.rm = TRUE),
- t_ann_median = median(t_avg_C, na.rm = TRUE),
- t_ann_min = min(t_avg_C, na.rm = TRUE),
- t_ann_max = max(t_avg_C, na.rm = TRUE),
- prcp_median = median(prcp_daily_mm, na.rm = TRUE),
- prcp_max = max(prcp_daily_mm, na.rm = TRUE),
- prcp_min = min(prcp_daily_mm, na.rm = TRUE)
- )
+  aligned_data %>%
+  filter(waterYear != 1986) %>%
+  mutate(site_name = case_when(
+    site_name == "Dungeness_River" ~ "Dungeness River",
+    site_name == "Elwha_River" ~ "Elwha River",
+    site_name == "Skokomish_River" ~ "Skokomish River",
+    TRUE ~ site_name
+  )) %>%
+  group_by(site_name, waterYear) %>%
+  reframe(
+    abundance_qty = Mode(abundance_qty),
+    Flow_median = median(Flow, na.rm = TRUE),
+    Flow_max = max(Flow, na.rm = TRUE),
+    Flow_min = min(Flow, na.rm = TRUE),
+    t_ann_median = median(t_avg_C, na.rm = TRUE),
+    t_ann_min = min(t_avg_C, na.rm = TRUE),
+    t_ann_max = max(t_avg_C, na.rm = TRUE),
+    prcp_median = median(prcp_daily_mm, na.rm = TRUE),
+    prcp_max = max(prcp_daily_mm, na.rm = TRUE),
+    prcp_min = min(prcp_daily_mm, na.rm = TRUE)
+  )
 
 ```
 
@@ -960,16 +963,21 @@ fish_mlr_min <-
 lapply(fish_mlr_min, summary)
 
 fish_mlr_wcs <-
-  gage_fish_all %>%
+  aligned_data_stats %>%
   group_by(site_name) %>%
-  group_map(~ lm(abundance_qty ~ Flow, data = .))
+  group_map(~ lm(abundance_qty ~ Flow_max, data = .))
 
 fish_mlr_wcs_summ <-
   lapply(fish_mlr_wcs, summary) 
 
 names(fish_mlr_wcs_summ) <- c("Dunguness River", "Elwha River", "Skokomish River")
 
-fish_mlr_wcs_summ[[2]]
+wcs_pvals <-
+  lapply(fish_mlr_wcs_summ, function(s) {
+  coef(s)[,4]
+})
+
+
 ```
 
 ```{r}
@@ -1248,7 +1256,7 @@ migration_filter <-
              fake_julian = julian(fake_dates, origin = as.Date("1970-01-01"))
       ) %>%
       filter(!(between(fake_julian, 151, 211))) %>%
-      bind_rows(                                    #re-add the eariler filtered rows 
+      bind_rows(                                    #re-add the earlier filtered rows 
         (filter(
           f, 
           year(Date_lead) < 1987)),
@@ -1373,7 +1381,7 @@ gage_fish_all %>%
   labs(
     color = "Flow Code",
     x = "Year",
-    y = "Salmon Return Abundance",
+    y = "Flow (cfs)",
     title = "Skokomish River" 
   ) +
   theme_minimal() +
@@ -1389,8 +1397,13 @@ ggsave("skoko_cd code.jpeg")
 
 #Animated Graph
 ```{r}
-
 gage_fish_all %>%
+  ggplot(aes(x = Date, y = Flow, color = site_name)) +
+  geom_line() +
+  facet_wrap(~ site_name, nrow = 3) +
+  transition_manual(ann) +
+  labs(title = "Year: {frame_time}")
+  
   
 
 ```
@@ -1399,6 +1412,76 @@ gage_fish_all %>%
 ```{r}
 midas_r()
 
+
+```
+
+#Linear Regression with r^2 and regression eq
+```{r}
+
+
+#attempt to resolve eq plotting issues
+aligned_data_stats_reg <- aligned_data_stats %>%
+  group_by(site_name) %>%
+  mutate(
+    label.x = min(t_ann_min) + 0.05 * (max(t_ann_min) - min(t_ann_min)),
+    label.y = max(abundance_qty) - 0.05 * (max(abundance_qty) - min(abundance_qty))
+  )
+
+
+
+
+# This one actually makes the good plot
+aligned_data_stats_reg %>%
+  ggplot(aes(x = Flow_max, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  facet_wrap(~site_name, nrow = 3, scales = "free") +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(
+    aes(label.x = label.x, label.y = label.y,
+        label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+    size = 4,
+    hjust = 0
+  ) +
+  labs(
+    x = "Maximum Flow (cfs)",
+    y = "Abundance Quantity"
+  ) +
+  theme(legend.position="none")
+
+
+aligned_data_stats %>%
+  ggplot(aes(x = t_ann_min, y = abundance_qty, color = site_name)) +
+  geom_point() +
+  facet_wrap(~ site_name, nrow = 3, scales = "free") +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(
+    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+    size = 4,
+    hjust = 0
+  )
+
+
+```
+
+```{r}
+df <- gage_fish_all %>%
+  mutate(
+    year = year(Date),
+    month_day = as.Date(format(Date, "2000-%m-%d")),  # Rebase all dates to year 2000
+    title_clean = gsub("_", " ", site_name)
+  )
+
+
+p <- ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
+  geom_line() +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b", limits = as.Date(c("2000-01-01", "2000-12-31"))) +
+  theme_minimal() +
+  labs(title = "Year: {current_frame}",
+       x = "Month",
+       color = "Site name") +
+  transition_manual(year)
+
+animate(p, width = 800, height = 400, fps = 5)
 
 ```
 
