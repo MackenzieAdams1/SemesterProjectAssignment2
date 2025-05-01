@@ -814,12 +814,6 @@ ElwhaTrendsTemp <- grid.arrange(ElwhaReturns, ElwhaMinTemp, ElwhaMaxTemp, ElwhaM
 ```
 
 
-
-
-
-
-
-
 ```{r}
 # Creating a variety of linear regression models to analyze our data and determine potential trends between salmon returns and climate variables. 
 
@@ -840,7 +834,6 @@ fish_pvals <-
 })
 
 ```
-
 
 
 ```{r}
