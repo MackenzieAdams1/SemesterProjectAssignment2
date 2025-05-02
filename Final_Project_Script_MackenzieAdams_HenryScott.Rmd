@@ -969,7 +969,7 @@ aligned_data_stats_reg %>%
 ```
 
 ```{r}
-#Coloring Skokomish discharge by the USGS flow codes to try and determine why the sudden change in discharge occurs after 2010.
+#Coloring Skokomish discharge by the USGS flow codes to try and determine why the sudden change in discharge occurs after
 
 gage_fish_all %>%
   filter(site_name == "Skokomish_River") %>%
@@ -1105,15 +1105,17 @@ gage_fish_lead %>%
 #Linear Regression with r^2 and regression eq
 
 ```{r}
+
 anim_fish_all_df <- gage_fish_all %>%
-  mutate(
-    year = year(Date),
-    month_day = as.Date(format(Date, "2000-%m-%d")),  # Rebase all dates to year 2000
-    title_clean = gsub("_", " ", site_name)
-  )
+ mutate(
+ year = year(Date),
+ month_day = as.Date(format(Date, "2000-%m-%d")), # Rebase all dates to year 2000
+ title_clean = gsub("_", " ", site_name) # Corrected the missing parenthesis
+ )
 
 
-flow_anim <- ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
+flow_anim <- 
+ggplot(df, aes(x = month_day, y = Flow, color = title_clean)) +
   geom_line() +
   scale_x_date(date_breaks = "1 month", date_labels = "%b", limits = as.Date(c("2000-01-01", "2000-12-31"))) +
   theme_minimal() +
