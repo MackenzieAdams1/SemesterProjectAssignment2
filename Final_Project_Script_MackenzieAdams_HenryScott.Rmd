@@ -1101,30 +1101,3 @@ Dungeness_data <-
 #   group_map(~ migration_filter(.x))
 
 ```
-
-#Linear Regression with r^2 and regression eq
-
-```{r}
-
-anim_fish_all_dfll_df <- gage_fish_all %>%
-  mutate(
-    year = year(Date),
-    month_day = as.Date(format(Date, "2000-%m-%d")), # Rebase all dates to year 2000
-    title_clean = gsub("_", " ", site_name) # Corrected the missing parenthesis
-  )
-
-
-flow_anim <- 
-  ggplot(anim_fish_all_df, aes(x = month_day, y = Flow, color = title_clean)) +
-  geom_line() +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", limits = as.Date(c("2000-01-01", "2000-12-31"))) +
-  theme_minimal() +
-  labs(title = "Year: {current_frame}",
-       x = "Month",
-       color = "Site name") +
-  transition_manual(year)
-
-animate(flow_anim, width = 800, height = 400, fps = 5)
-
-```
-
