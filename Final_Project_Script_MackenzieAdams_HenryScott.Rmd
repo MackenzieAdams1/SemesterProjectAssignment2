@@ -1006,6 +1006,7 @@ gage_fish_lead <-
          ann_lead = year(Date_lead)
   )
 
+
 #This code also did not end up working how we wanted to but it was our attempt at creating an effective way to subset the data to look at dates more relevant to salmon spawning.
 
 # Creates a Dungeness subset for efficient testing
