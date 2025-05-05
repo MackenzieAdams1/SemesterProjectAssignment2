@@ -1,6 +1,2 @@
-# SemesterProjectAssignment2
-Assignment 2 for term project
-
-Henry added this via his laptop. Fingers crossed
-
-Mackenzie says hi
+# Semester Project Code 
+This project looks to address how changes in climate variables (discharge, precipitation, and air temperature) affect salmon returns in the Pacific Northwest.
